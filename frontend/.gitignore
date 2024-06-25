@@ -1,0 +1,58 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Flask (Python) specific
+*.pyc
+__pycache__/
+instance/
+*.pyo
+*.pyd
+*.pyc
+
+# Angular (Node.js) specific
+/dist
+/tmp
+/out-tsc
+/bazel-out
+/node_modules
+npm-debug.log
+yarn-error.log
+.history
+.angular/cache
+.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment-specific files
+.env
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Miscellaneous
+*.log
+*.sqlite3
+*.db
+*.pdf

@@ -45,3 +45,26 @@
 /**/Thumbs.db
 
 /**/.nyc_output
+
+# Flask (Python) specific
+/**/.pyc
+/**/__pycache__/
+/**/instance/
+/**/*.pyo
+/**/*.pyd
+/**/*.pyc
+
+# Environment-specific files
+/**/.env
+/**/.env.*
+/**/.env.local
+/**/.env.development
+/**/.env.test
+/**/.env.production
+/**/.venv
+
+# Miscellaneous
+/**/*.log
+/**/*.sqlite3
+/**/*.db
+/**/*.pdf

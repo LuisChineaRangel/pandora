@@ -1,1 +1,21 @@
-/* You can add global styles to this file, and also import other style files */
+:host {
+    --white: rgba(255, 255, 255, 1);
+    --black: rgba(0, 0, 0, 1);
+
+    --error: rgba(244, 67, 54, 1);
+
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+html,
+body,
+app-root {
+    margin: 0;
+    padding: 0;
+}

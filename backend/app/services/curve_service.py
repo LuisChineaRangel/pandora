@@ -2,7 +2,6 @@ from typing import Any
 from sympy import isprime
 from app.services.point_service import Point
 
-
 class Curve:
     """Class representing an elliptic curve used in ECC.
 

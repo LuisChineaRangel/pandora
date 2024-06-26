@@ -1,1 +1,37 @@
-<p>simulation works!</p>
+<mat-card>
+    <mat-card-title>
+        <h1>ECC Simulation</h1>
+    </mat-card-title>
+    <mat-card-content>
+        <mat-card>
+            <h2>Properties</h2>
+            <div>
+                <button mat-button id="SECP256k1">SECP256k1</button>
+                <button mat-button id="Curve448">Curve448</button>
+                <button mat-button id="Curve25519">Curve25519</button>
+            </div>
+            <div>
+                <label for="a">Curve: y² = x³ +</label>
+                <mat-form-field>
+                    <input matInput type="number" id="a" placeholder="a" required>
+                </mat-form-field>
+                <label for="b">x +</label>
+                <mat-form-field>
+                    <input matInput type="number" id="b" placeholder="b" required>
+                </mat-form-field>
+            </div>
+            <div>
+                <label for="field">Field</label>
+                <mat-form-field>
+                    <input matInput type="number" id="field" placeholder="1, 2, 3, 5, 7..." min="0" required>
+                </mat-form-field>
+                <label for="base">Base Point</label>
+                <!-- <mat-form-field>
+                    <mat-select id="base" required>
+                        <mat-option *ngFor="let point of basePoints" [value]="point">{{point}}</mat-option>
+                    </mat-select>
+                </mat-form-field> -->
+            </div>
+        </mat-card>
+    </mat-card-content>
+</mat-card>

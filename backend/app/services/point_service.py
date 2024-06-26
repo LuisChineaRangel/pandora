@@ -1,5 +1,6 @@
 import json
 import math
+from typing import Any
 from sympy import mod_inverse
 from app.utils import simplify_fraction
 
@@ -28,7 +29,7 @@ class Point:
     def __init__(self, params, x=0, y=0):
         self.a, self.field, self.x, self.y = params.a, params.field, x, y
 
-    def __setattr__(self, __name: str, __value: json.Any) -> None:
+    def __setattr__(self, __name: str, __value: Any) -> None:
         if __name in ["a", "field", "x", "y"] and not isinstance(__value, int):
             raise ValueError(f'Invalid value! {__name} must be an integer.')
 

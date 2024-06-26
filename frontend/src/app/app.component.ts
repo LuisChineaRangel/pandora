@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 export class AppComponent implements OnInit {
     title: string = 'Pandora';
     opened: boolean = false;
+    uid: string = String();
     currentRoute: string = 'home';
     sidebarLinks: { label: string, route: string, icon?: string }[] = [
         { label: 'Home', route: '/home', icon: 'home' },

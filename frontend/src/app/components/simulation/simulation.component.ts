@@ -61,7 +61,7 @@ export class SimulationComponent implements OnInit {
     }
 
     async ngOnInit() {
-        this.uid = await this.uidService.loadUid();
+        this.uid = this.uidService.loadUid();
         await this.uidService.renewUid(this.uid).subscribe((uid: string) => {
             this.uidService.saveUid(uid);
         });

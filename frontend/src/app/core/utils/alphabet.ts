@@ -68,7 +68,7 @@ abstract class BasicAlphabet {
  */
 export class Alphabet extends BasicAlphabet {
 
-    static languages = languages;
+    static readonly languages = languages;
     options = options;
 
     /**
@@ -115,8 +115,8 @@ export class Alphabet extends BasicAlphabet {
  */
 export class NumericSystem extends BasicAlphabet {
     protected _base: number;
-    static string_format = string_format;
-    static special = special;
+    static readonly string_format = string_format;
+    static readonly special = special;
 
     /**
      * Constructor of the class

@@ -123,9 +123,8 @@ export function split(curve: any[]) {
  */
 export function displayCurve(a: number, b: number, config: { range: number; step: number; threshold: number }) {
     let f_half = [];
-    console.log(config);
     for (let i = -config.range; i <= config.range; i += config.step) {
-        var x = i;
+        let x = i;
         if (x < 1) x = Math.floor(x / config.step) * config.step;
         const expr = new Complex(x ** 3 + a * x + b);
         const sqrtExpr = expr.sqrt();

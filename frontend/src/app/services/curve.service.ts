@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SERVER_URL } from '@app/app.config';
 import { Observable } from 'rxjs';
+import { Point } from 'chart.js';
 @Injectable({
     providedIn: 'root',
 })
@@ -15,5 +16,13 @@ export class CurveService {
 
     getPoints(uid: string): Observable<any> {
         return this.http.get<any>(`${this.curveURL}/api/curve/points`, { params: { uid } });
+    }
+
+    setBase(uid: string, base: Point): Observable<any> {
+        return this.http.post<any>(`${this.curveURL}/api/curve/base`, { uid, x: base.x, y: base.y });
+    }
+
+    getPublicKey(uid: string, i : number, privateKey: number): Observable<any> {
+        return this.http.post<any>(`${this.curveURL}/api/curve/public`, { uid, i, privateKey });
     }
 }

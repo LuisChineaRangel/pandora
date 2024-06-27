@@ -7,6 +7,7 @@ import { UidService } from '@services/uid.service';
 import { CurveService } from '@services/curve.service';
 import { chartOptions, calculateConfig, displayCurve, dsConfig } from '@app/core/utils/chart';
 import { primeValidator } from '@app/core/utils/validators';
+import { languages, string_format, special, Alphabet, NumericSystem } from '@app/core/utils/alphabet';
 
 @Component({
     selector: 'app-simulation',
@@ -21,6 +22,8 @@ export class SimulationComponent implements OnInit {
     baseForm: FormGroup;
     secretsForm: FormGroup;
     points: Point[] = [];
+    languages: { [key: string]: string } = languages;
+    numericSystems: { [key: string]: string | number } = { ...string_format, ...special };
 
     @ViewChild('Curve', { static: true }) curveChartRef: ElementRef<HTMLCanvasElement> | any;
     @ViewChild('Points', { static: true }) pointsChartRef: ElementRef<HTMLCanvasElement> | any;
@@ -57,8 +60,11 @@ export class SimulationComponent implements OnInit {
         this.secretsForm.disable();
     }
 
-    ngOnInit() {
-        this.uid = this.uidService.loadUid();
+    async ngOnInit() {
+        this.uid = await this.uidService.loadUid();
+        await this.uidService.renewUid(this.uid).subscribe((uid: string) => {
+            this.uidService.saveUid(uid);
+        });
     }
 
     ngAfterViewInit() {
@@ -98,6 +104,8 @@ export class SimulationComponent implements OnInit {
         else {
             this.baseForm.reset();
             this.baseForm.disable();
+            this.secretsForm.reset();
+            this.secretsForm.disable();
         }
     }
 
@@ -105,7 +113,6 @@ export class SimulationComponent implements OnInit {
         this.loading_curve = true;
         const config = calculateConfig(this.curveForm.value.a, this.curveForm.value.b);
         const [f_half, s_half] = displayCurve(this.curveForm.value.a, this.curveForm.value.b, config);
-        console.log(f_half, s_half);
         const ctx = this.curveChartRef.nativeElement.getContext('2d');
         if (ctx) {
             this.c_chart?.destroy();
@@ -151,16 +158,35 @@ export class SimulationComponent implements OnInit {
     }
 
     async onSubmitBase() {
+        if (this.baseForm.valid) {
+            const formValue = this.baseForm.value;
+            await this.curveService.setBase(this.uid, formValue.base).subscribe((res) => {
+                console.log(res);
+            });
+            this.secretsForm.reset();
+            this.secretsForm.enable();
+            this.secretsForm.get('shared')?.disable();
+        }
+        else {
+            this.secretsForm.reset();
+            this.secretsForm.disable();
+        }
     }
 
     updatePartyDetails(numParties: number): void {
         const partyDetailsArray = this.secretsForm.get('partyDetails') as FormArray;
-
         while (partyDetailsArray.length !== 0)
             partyDetailsArray.removeAt(0);
-
-        for (let i = 0; i < numParties; i++)
+        for (let i = 0; i < numParties; i++) {
             partyDetailsArray.push(this.createPartyFormGroup());
+            partyDetailsArray.at(i).get('private_key')?.valueChanges.subscribe((privateKey: number) => {
+                this.curveService.getPublicKey(this.uid, i, privateKey).subscribe((res) => {
+                    let public_key = JSON.parse(res.public_key);
+                    partyDetailsArray.at(i).get('public_key')?.setValue(`(${public_key.x}, ${public_key.y})`);
+                });
+            });
+            partyDetailsArray.at(i).get('public_key')?.disable();
+        }
     }
 
     createPartyFormGroup(): FormGroup {
@@ -168,6 +194,10 @@ export class SimulationComponent implements OnInit {
             private_key: ['', [Validators.required, Validators.min(0)]],
             public_key: ['']
         });
+    }
+
+    get partyDetails(): FormArray {
+        return this.secretsForm.get('partyDetails') as FormArray;
     }
 
     onCategoryChange(category: string) {

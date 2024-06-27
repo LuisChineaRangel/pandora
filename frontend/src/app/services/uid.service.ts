@@ -14,6 +14,10 @@ export class UidService {
         return this.http.get<string>(this.uidURL);
     }
 
+    renewUid(uid: string): Observable<string> {
+        return this.http.put<string>(this.uidURL, { uid });
+    }
+
     saveUid(uid: string): void {
         localStorage.setItem('uid', uid);
     }

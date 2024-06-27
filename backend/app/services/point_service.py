@@ -23,7 +23,7 @@ class Point:
         __sub__: Subtract two points.
         __mul__: Multiply a point by a scalar.
         __str__: Return a string representation of the point.
-        toJSON: Return a JSON representation of the point.
+        to_json: Return a JSON representation of the point.
     """
 
     def __init__(self, params, x=0, y=0):
@@ -99,5 +99,5 @@ class Point:
             return "(O)"
         return f"({self.x}, {self.y})"
 
-    def toJSON(self) -> str:
+    def to_json(self) -> str:
         return json.dumps({"x": self.x, "y": self.y}, indent=4)

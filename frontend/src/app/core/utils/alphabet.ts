@@ -1,4 +1,4 @@
-const languages : { [key: string]: string } = {
+export const languages : { [key: string]: string } = {
     "english": "abcdefghijklmnopqrstuvwxyz",
     "spanish": "abcdefghijklmnñopqrstuvwxyz",
     "catalan": "abcçdefghijklmnopqrstuvwxyz",
@@ -11,8 +11,8 @@ const languages : { [key: string]: string } = {
     "hebrew": "אבגדהוזחטיכלמנסעפצקרשת",
     "arabic": "ابتثجحخدذرزسشصضطظعغفقكلمنهوي",
     "hindi": "अआइईउऊऋएऐओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह",
-    "japanese-hiragana": "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん",
-    "japanese-katakana": "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン",
+    "japanese_hiragana": "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん",
+    "japanese_katakana": "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン",
     "korean": "ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ",
     "base64": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
     "ascii": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
@@ -26,13 +26,13 @@ const options = {
     "lower-upper": false,
 }
 
-const string_format : { [key: string]: number } = {
+export const string_format : { [key: string]: number } = {
     "binary": 2,
     "octal": 8,
     "decimal": 10,
 }
 
-const special : { [key: string]: string } = {
+export const special : { [key: string]: string } = {
     "hexadecimal": "0123456789ABCDEF",
     "roman": "IVXLCDM",
 }
@@ -89,7 +89,7 @@ export class Alphabet extends BasicAlphabet {
      * @returns {Array} Characters of the alphabet. If the option "alphanumeric" is enabled, it will return the characters of the alphabet plus the characters of the numeric system
      */
     get characters() {
-        var characters: Array<string> = Array.from(this._characters);
+        let characters: Array<string> = Array.from(this._characters);
         if (this.options["uppercase"])
             characters = Array.from(new Set(characters.map(c => c.toUpperCase())));
         if (this.options["lower-upper"])

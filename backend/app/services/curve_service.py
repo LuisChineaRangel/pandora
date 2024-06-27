@@ -42,7 +42,7 @@ class Curve:
             raise ValueError(f'Invalid value! {__name} must be an integer.')
         if __name == "points" and not isinstance(__value, list):
             raise ValueError(f'Invalid value! {__name} must be a list.')
-        if __name__ == "base" and not isinstance(__value, "Point"):
+        if __name__ == "base" and not type(__value) == Point:
             raise ValueError(f'Invalid value! {__name} must be a Point.')
         if __name == "public_keys" and not isinstance(__value, dict):
             raise ValueError(f'Invalid value! {__name} must be a dict.')
@@ -57,7 +57,6 @@ class Curve:
                     self.calculate_points()
                 except ValueError:
                     pass
-                return
 
     def order(self) -> int:
         return len(self.points) + 1
@@ -123,36 +122,36 @@ class Curve:
         return decoded
 
     def encrypt(
-        self, alphabet: str, message: str, dx: int, dyG: "Point", shared=False
+        self, alphabet: str, message: str, secret: int, public_key: "Point", shared=False
     ) -> list:
         if not self.base:
             raise ValueError("Base point not set!")
-        if dyG == Point(self):
+        if public_key == Point(self):
             raise ValueError("Public key of the other party not set!")
-        if dx == 0:
+        if secret == 0:
             return [Point(self)] * len(message)
         if not shared:
             return [
-                (Qm + (dyG * dx), self.base * dx)
+                (Qm + (public_key * secret), self.base * secret)
                 for Qm in self.encode(alphabet, message)
             ]
-        return [(Qm + dyG, self.base * dx) for Qm in self.encode(alphabet, message)]
+        return [(Qm + public_key, self.base * secret) for Qm in self.encode(alphabet, message)]
 
-    def decrypt(self, alphabet: str, points: list, dx: int, dyG: "Point" = None) -> str:
+    def decrypt(self, alphabet: str, points: list, secret: int, public_key: "Point" = None) -> str:
         if not self.base:
             raise ValueError("Base point not set!")
         msg = ""
-        if dx == 0:
+        if secret == 0:
             return msg
-        if dyG is None:
-            for encrypted, dyG in points:
-                shared = dyG * dx
+        if public_key is None:
+            for encrypted, public_key in points:
+                shared = public_key * secret
                 decrypted = encrypted - shared
                 if decrypted is None:
                     return ""
                 msg += self.decode(alphabet, [decrypted])
         else:
-            shared = dyG * dx
+            shared = public_key * secret
             for encrypted in points:
                 decrypted = encrypted - shared
                 if decrypted is None:

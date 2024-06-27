@@ -27,7 +27,7 @@ export class AppComponent implements OnInit {
         await this.uidService.getUid().subscribe((uid: string) => {
             this.uidService.saveUid(uid);
         });
-        this.opened = localStorage.getItem('opened')? true : false;
+        this.opened = !!localStorage.getItem('opened');
     }
 
     toggleSidebar(): void {

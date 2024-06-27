@@ -42,7 +42,7 @@ class Curve:
             raise ValueError(f'Invalid value! {__name} must be an integer.')
         if __name == "points" and not isinstance(__value, list):
             raise ValueError(f'Invalid value! {__name} must be a list.')
-        if __name__ == "base" and not type(__value) == Point:
+        if __name__ == "base" and type(__value) != Point:
             raise ValueError(f'Invalid value! {__name} must be a Point.')
         if __name == "public_keys" and not isinstance(__value, dict):
             raise ValueError(f'Invalid value! {__name} must be a dict.')

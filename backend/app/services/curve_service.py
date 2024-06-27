@@ -27,15 +27,14 @@ class Curve:
         decrypt: Decrypt a list of points using a private key.
     """
 
-    def __init__(self, a: int, b: int, simulation: bool = False):
-        self.a = a
-        self.b = b
-        self.field = 0
+    def __init__(self, a: int, b: int, field: int, simulation: bool = False) -> None:
+        self.simulation = simulation
+        self.a, self.b, self.field = a, b, field
         self.n = 0
         self.points = []
-        self.base = Point(a, 0)
+        self.base = Point(self)
         self.public_keys = {}
-        self.simulation = simulation
+
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name in ["a", "b", "field", "n"] and not isinstance(__value, int):
@@ -48,13 +47,16 @@ class Curve:
             raise ValueError(f'Invalid value! {__name} must be a dict.')
         if __name == "alphabet" and not isinstance(__value, str):
             raise ValueError(f'Invalid value! {__name} must be a string.')
-        # if __name == 'field' and not isprime(__value):
-        #   raise ValueError('Not a prime number!')
-        if __name in ["a", "b", "field"] and getattr(self, __name, None) != __value:
+        if __name == 'field' and not isprime(__value) and hasattr(self, 'simulation') and self.simulation:
+            raise ValueError('Not a prime number!')
+        if __name in ["a", "b", "field"] and getattr(self, __name, None) != __value and getattr(self, "simulation", False):
             self.points = []
             super().__setattr__(__name, __value)
-            if self.simulation:
-                self.calculate_points()
+            try:
+                if getattr(self, "simulation", False):
+                    self.calculate_points()
+            except ValueError as e:
+                pass
             return
         super().__setattr__(__name, __value)
 
@@ -65,7 +67,7 @@ class Curve:
         return len(alphabet)
 
     def calculate_points(self) -> None:
-        if any(param is None for param in [self.a, self.b, self.field]):
+        if not self.a or not self.b or not self.field:
             raise ValueError(
                 f"Parameters not set! a: {self.a}, b: {self.b}, field: {self.field}"
             )

@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CoreModule } from '@app/core/core.module';
 import { Router } from '@angular/router';
+
+import { UidService } from '@services/uid.service';
+
 @Component({
     selector: 'app-root',
     standalone: true,
@@ -11,7 +14,6 @@ import { Router } from '@angular/router';
 export class AppComponent implements OnInit {
     title: string = 'Pandora';
     opened: boolean = false;
-    uid: string = String();
     currentRoute: string = 'home';
     sidebarLinks: { label: string, route: string, icon?: string }[] = [
         { label: 'Home', route: '/home', icon: 'home' },
@@ -19,9 +21,12 @@ export class AppComponent implements OnInit {
         { label: 'Documentation', route: '/documentation', icon: 'library_books' },
     ];
 
-    constructor(private router: Router) { }
+    constructor(private router: Router, private uidService: UidService) { }
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
+        await this.uidService.getUid().subscribe((uid: string) => {
+            this.uidService.saveUid(uid);
+        });
         this.opened = localStorage.getItem('opened') === 'true' ? true : false;
     }
 

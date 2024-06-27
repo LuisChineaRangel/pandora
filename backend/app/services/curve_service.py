@@ -28,12 +28,13 @@ class Curve:
     """
 
     def __init__(self, a: int, b: int, field: int, simulation: bool = False) -> None:
-        self.simulation = simulation
-        self.a, self.b, self.field = a, b, field
         self.n = 0
         self.points = []
-        self.base = Point(self)
         self.public_keys = {}
+
+        self.simulation = simulation
+        self.a, self.b, self.field = a, b, field
+        self.base = Point(self)
 
 
     def __setattr__(self, __name: str, __value: Any) -> None:
@@ -49,16 +50,14 @@ class Curve:
             raise ValueError(f'Invalid value! {__name} must be a string.')
         if __name == 'field' and not isprime(__value) and hasattr(self, 'simulation') and self.simulation:
             raise ValueError('Not a prime number!')
-        if __name in ["a", "b", "field"] and getattr(self, __name, None) != __value and getattr(self, "simulation", False):
-            self.points = []
-            super().__setattr__(__name, __value)
-            try:
-                if getattr(self, "simulation", False):
-                    self.calculate_points()
-            except ValueError as e:
-                pass
-            return
         super().__setattr__(__name, __value)
+        if __name in ["a", "b", "field"]:
+            if hasattr(self, "a") and hasattr(self, "b") and hasattr(self, "field") and getattr(self, "simulation", False):
+                try:
+                    self.calculate_points()
+                except ValueError:
+                    pass
+                return
 
     def order(self) -> int:
         return len(self.points) + 1
@@ -67,7 +66,9 @@ class Curve:
         return len(alphabet)
 
     def calculate_points(self) -> None:
-        if not self.a or not self.b or not self.field:
+        self.points = []
+        print(self.a, self.b, self.field)
+        if self.a is None or self.b is None or self.field is None:
             raise ValueError(
                 f"Parameters not set! a: {self.a}, b: {self.b}, field: {self.field}"
             )

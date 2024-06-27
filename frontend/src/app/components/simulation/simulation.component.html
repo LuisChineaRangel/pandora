@@ -5,6 +5,11 @@
     <mat-card-content>
         <mat-card>
             <h2>Properties</h2>
+            <div>
+                <button mat-button (click)="loadCurveData('SECP256k1')">SECP256k1</button>
+                <button mat-button (click)="loadCurveData('Curve448')">Curve448</button>
+                <button mat-button (click)="loadCurveData('Curve25519')">Curve25519</button>
+            </div>
             <form [formGroup]="curveForm">
                 Curve: y² = x³ +
                 <mat-form-field>
@@ -16,25 +21,133 @@
                 </mat-form-field>
                 <label for="field">Field</label>
                 <mat-form-field>
-                    <input matInput type="number" formControlName="field" id="field" [placeholder]="'1, 2, 3, 5, 7...'">
+                    <input matInput type="number" formControlName="field" id="field" [placeholder]="'2, 3, 5, 7...'">
+                    <mat-error *ngIf="curveForm.get('field')?.hasError('primeError')">
+                        The field value must be a prime number.
+                    </mat-error>
                 </mat-form-field>
             </form>
             <form [formGroup]="baseForm">
                 <label for="base">Base Point</label>
-            </form>
-            <div>
-                <button mat-button id="SECP256k1">SECP256k1</button>
-                <button mat-button id="Curve448">Curve448</button>
-                <button mat-button id="Curve25519">Curve25519</button>
-            </div>
-            <div>
-                <label for="base">Base Point</label>
-                <!-- <mat-form-field>
-                    <mat-select id="base" required>
-                        <mat-option *ngFor="let point of basePoints" [value]="point">{{point}}</mat-option>
+                <mat-form-field>
+                    <mat-select id="base" formControlName="base">
+                        <mat-option *ngFor="let point of points" [value]="point">{{point}}</mat-option>
                     </mat-select>
-                </mat-form-field> -->
-            </div>
+                </mat-form-field>
+            </form>
         </mat-card>
+    </mat-card-content>
+</mat-card>
+<mat-card class="charts-container">
+    <div class="chart">
+        <mat-card-header>
+            <mat-card-title>
+                ECC Simulation
+                <mat-progress-spinner *ngIf="loading_curve" mode="indeterminate"></mat-progress-spinner>
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div>
+                <canvas #Curve></canvas>
+            </div>
+        </mat-card-content>
+    </div>
+    <div class="chart">
+        <mat-card-header>
+            <mat-card-title>Points
+                <mat-progress-spinner *ngIf="loading_points" mode="indeterminate"></mat-progress-spinner>
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div>
+                <canvas #Points></canvas>
+            </div>
+        </mat-card-content>
+    </div>
+</mat-card>
+
+<mat-card>
+    <mat-card-content>
+        <h2>Secrets</h2>
+        <form [formGroup]="secretsForm" class="mat-form-field-container">
+            <mat-form-field>
+                <mat-label>Participants</mat-label>
+                <input matInput formControlName="num_participants" type="number" id="num_participants" placeholder="2-5"
+                    min="2" max="5" required>
+            </mat-form-field>
+
+            <mat-form-field>
+                <mat-label>Shared Key</mat-label>
+                <input matInput formControlName="shared" type="text" id="shared" placeholder="x, y">
+            </mat-form-field>
+        </form>
+    </mat-card-content>
+</mat-card>
+
+
+<mat-card>
+    <mat-card-content>
+        <h2>Choose either Alphabet or Number System</h2>
+        <mat-button-toggle-group aria-label="Choose Category" [formControl]="selectedCategoryControl">
+            <mat-button-toggle value="alphabet">Alphabet</mat-button-toggle>
+            <mat-button-toggle value="number">Number System</mat-button-toggle>
+        </mat-button-toggle-group>
+    </mat-card-content>
+</mat-card>
+<mat-card *ngIf="selectedCategoryControl.value === 'alphabet'">
+    <mat-card-content>
+        <h2>Alphabets</h2>
+        <mat-button-toggle-group aria-label="Alphabets">
+            <mat-button-toggle value="english">English</mat-button-toggle>
+            <mat-button-toggle value="spanish">Spanish</mat-button-toggle>
+            <mat-button-toggle value="catalan">Catalan</mat-button-toggle>
+            <mat-button-toggle value="german">German</mat-button-toggle>
+            <mat-button-toggle value="french">French</mat-button-toggle>
+            <mat-button-toggle value="italian">Italian</mat-button-toggle>
+            <mat-button-toggle value="portuguese">Portuguese</mat-button-toggle>
+            <mat-button-toggle value="russian">Russian</mat-button-toggle>
+            <mat-button-toggle value="greek">Greek</mat-button-toggle>
+            <mat-button-toggle value="hebrew">Hebrew</mat-button-toggle>
+            <mat-button-toggle value="arabic">Arabic</mat-button-toggle>
+            <mat-button-toggle value="hindi">Hindi</mat-button-toggle>
+            <mat-button-toggle value="japanese-hiragana">Japanese Hiragana</mat-button-toggle>
+            <mat-button-toggle value="japanese-katakana">Japanese Katakana</mat-button-toggle>
+            <mat-button-toggle value="korean">Korean</mat-button-toggle>
+            <mat-button-toggle value="base64">Base64</mat-button-toggle>
+            <mat-button-toggle value="ascii">ASCII</mat-button-toggle>
+        </mat-button-toggle-group>
+    </mat-card-content>
+</mat-card>
+
+<mat-card *ngIf="selectedCategoryControl.value === 'number'">
+    <mat-card-content>
+        <h2>Number Systems</h2>
+        <mat-button-toggle-group aria-label="Number Systems">
+            <mat-button-toggle value="decimal">Decimal</mat-button-toggle>
+            <mat-button-toggle value="binary">Binary</mat-button-toggle>
+            <mat-button-toggle value="octal">Octal</mat-button-toggle>
+            <mat-button-toggle value="hexadecimal">Hexadecimal</mat-button-toggle>
+            <mat-button-toggle value="roman">Roman</mat-button-toggle>
+        </mat-button-toggle-group>
+    </mat-card-content>
+</mat-card>
+
+<mat-card *ngIf="selectedCategoryControl.value === 'alphabet'">
+    <mat-card-content>
+        <h2>Options</h2>
+        <mat-button-toggle-group aria-label="Options">
+            <mat-button-toggle value="alphanumeric" disabled>Alphanumeric</mat-button-toggle>
+            <mat-button-toggle value="case-insensitive" disabled>Case Insensitive</mat-button-toggle>
+            <mat-button-toggle value="uppercase" disabled>Uppercase</mat-button-toggle>
+            <mat-button-toggle value="lower-upper" disabled>Lower/Upper</mat-button-toggle>
+        </mat-button-toggle-group>
+    </mat-card-content>
+</mat-card>
+<mat-card>
+    <mat-card-content>
+        <mat-form-field appearance="outline">
+            <mat-label>Define the Alphabet</mat-label>
+            <textarea matInput rows="8" id="alphabet" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" required></textarea>
+        </mat-form-field>
     </mat-card-content>
 </mat-card>

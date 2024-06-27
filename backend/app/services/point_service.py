@@ -32,6 +32,7 @@ class Point:
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name in ["a", "field", "x", "y"] and not isinstance(__value, int):
             raise ValueError(f'Invalid value! {__name} must be an integer.')
+        super().__setattr__(__name, __value)
 
     def at_infinity(self) -> bool:
         return (self.x, self.y) == (math.inf, math.inf)

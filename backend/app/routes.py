@@ -34,7 +34,6 @@ def calculate_points():
         uid = request.args.get('uid')
         if uid not in ec_instances:
             return jsonify("Curve not found"), 404
-        ec = ec_instances[uid]
         points = [point.toJSON() for point in ec_instances[uid].points]
         return jsonify({"message": "Points calculated", "points": points}), 200
     except Exception as e:

@@ -25,6 +25,13 @@ export class Point {
         return JSON.stringify({ x: this.x, y: this.y }, null, 4);
     }
 
+    static fromString(str: string) {
+        if (str === '(O)')
+            return new Point(-1, -1);
+        const [x, y] = str.replace('(', '').replace(')', '').replace(' ', '').split(',').map(Number);
+        return new Point(x, y);
+    }
+
     static distance(p1: Point, p2: Point) {
         return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
     }

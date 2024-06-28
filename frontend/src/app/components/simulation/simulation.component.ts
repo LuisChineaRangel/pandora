@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CoreModule, Point } from '@app/core/core.module';
 import { FormBuilder, FormControl, FormGroup, FormArray, Validators } from '@angular/forms';
+import { HttpResponse } from '@angular/common/http';
 import Chart from 'chart.js/auto';
 
 import { UidService } from '@services/uid.service';
@@ -41,6 +42,7 @@ export class SimulationComponent implements OnInit {
     };
 
     selectedCategoryControl: FormControl = new FormControl();
+    alphabet: string = String();
 
     constructor(private fb: FormBuilder, private uidService: UidService, private curveService: CurveService) {
         this.curveForm = this.fb.group({
@@ -87,10 +89,10 @@ export class SimulationComponent implements OnInit {
     async onSubmitCurve() {
         if (this.curveForm.valid) {
             const formValue = this.curveForm.value;
-            await this.curveService.makeCurve(this.uid, formValue.a, formValue.b, formValue.field).subscribe(async (res) => {
-                console.log(res);
+            await this.curveService.makeCurve(this.uid, formValue.a, formValue.b, formValue.field).subscribe(async (res: HttpResponse<string>) => {
+                console.log(res.body);
                 this.drawCChart();
-                await this.curveService.getPoints(this.uid).subscribe(async (res) => {
+                await this.curveService.getPoints(this.uid).subscribe(async (res: any) => {
                     this.points = res.points.map((data: string) => {
                         const point = JSON.parse(data);
                         return new Point(point.x, point.y);
@@ -160,8 +162,8 @@ export class SimulationComponent implements OnInit {
     async onSubmitBase() {
         if (this.baseForm.valid) {
             const formValue = this.baseForm.value;
-            await this.curveService.setBase(this.uid, formValue.base).subscribe((res) => {
-                console.log(res);
+            await this.curveService.setBase(this.uid, formValue.base).subscribe((res: HttpResponse<any>) => {
+                console.log(res.body);
             });
             this.secretsForm.reset();
             this.secretsForm.enable();
@@ -179,20 +181,75 @@ export class SimulationComponent implements OnInit {
             partyDetailsArray.removeAt(0);
         for (let i = 0; i < numParties; i++) {
             partyDetailsArray.push(this.createPartyFormGroup());
-            partyDetailsArray.at(i).get('private_key')?.valueChanges.subscribe((privateKey: number) => {
-                this.curveService.getPublicKey(this.uid, i, privateKey).subscribe((res) => {
-                    let public_key = JSON.parse(res.public_key);
-                    partyDetailsArray.at(i).get('public_key')?.setValue(`(${public_key.x}, ${public_key.y})`);
-                });
+            partyDetailsArray.at(i).get('public_key')?.valueChanges.subscribe(async () => {
+                await this.getSharedKey(partyDetailsArray);
+            });
+            partyDetailsArray.at(i).get('private_key')?.valueChanges.subscribe(async (privateKey: number) => {
+                await this.getPublicKey(i, privateKey, partyDetailsArray);
             });
             partyDetailsArray.at(i).get('public_key')?.disable();
         }
     }
 
+    async getPublicKey(i: number, privateKey: number, partyDetailsArray: FormArray): Promise<void> {
+        if (partyDetailsArray.at(i).get('private_key')?.valid) {
+            await this.curveService.getPublicKey(this.uid, i, privateKey).subscribe((res: HttpResponse<any>) => {
+                if (res.status === 200) {
+                    console.log(res.body.message);
+                    let publicKey = JSON.parse(res.body.public_key);
+                    partyDetailsArray.at(i).get('public_key')?.setValue(`(${publicKey.x}, ${publicKey.y})`);
+                }
+                else if (res.status === 204) {
+                    console.log("Invalid private key");
+                    partyDetailsArray.at(i).get('public_key')?.setValue('(O)');
+                }
+            });
+        }
+        return Promise.resolve();
+    }
+
+    async getSharedKey(partyDetailsArray: FormArray): Promise<void> {
+        for (let i = 0; i < partyDetailsArray.length; i++)
+            if (!partyDetailsArray.at(i).get('private_key')?.valid) return Promise.resolve();
+
+        let public_keys = [];
+        for (let i = 0; i < partyDetailsArray.length; i++)
+            public_keys.push(Point.fromString(partyDetailsArray.at(i).getRawValue().public_key));
+
+        // If all public keys are available
+        if (public_keys.length === partyDetailsArray.length) {
+            let break_flag = false;
+            // Calculate shared key between all parties
+            let sharedKey = public_keys[0];
+            for (let i = 1; i < partyDetailsArray.length; i++) {
+                const privateKey = partyDetailsArray.at(i).get('private_key')?.value;
+                await this.curveService.getSharedKey(this.uid, i, privateKey, sharedKey.toJSON()).subscribe((res: HttpResponse<any>) => {
+                    if (res.status === 200) {
+                        console.log(res.body.message);
+                        sharedKey = new Point(res.body.shared_key.x, res.body.shared_key.y);
+                    }
+                    else if (res.status === 204) {
+                        break_flag = true;
+                        console.log("Invalid private key");
+                        this.secretsForm.get('shared')?.setValue('(O)');
+                    }
+                    else {
+                        break_flag = true;
+                        console.log(res.body);
+                    }
+                });
+                if (break_flag) break;
+            }
+            if (!break_flag)
+                this.secretsForm.get('shared')?.setValue(`(${sharedKey.x}, ${sharedKey.y})`);
+        }
+        return Promise.resolve();
+    }
+
     createPartyFormGroup(): FormGroup {
         return this.fb.group({
-            private_key: ['', [Validators.required, Validators.min(0)]],
-            public_key: ['']
+            private_key: ['', [Validators.required, Validators.min(1)]],
+            public_key: ['', [Validators.required]],
         });
     }
 
@@ -202,5 +259,10 @@ export class SimulationComponent implements OnInit {
 
     onCategoryChange(category: string) {
         this.selectedCategoryControl.setValue(category);
+    }
+
+    setAlphabet(key : string) {
+        this.alphabet = key;
+
     }
 }

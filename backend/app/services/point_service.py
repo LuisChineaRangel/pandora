@@ -30,8 +30,10 @@ class Point:
         self.a, self.field, self.x, self.y = params.a, params.field, x, y
 
     def __setattr__(self, __name: str, __value: Any) -> None:
-        if __name in ["a", "field", "x", "y"] and not isinstance(__value, int):
+        if __name in ["a", "field", "x", "y"] and not isinstance(__value, int) and __value != math.inf:
             raise ValueError(f'Invalid value! {__name} must be an integer.')
+        if __name in ["x", "y"] and __value < 0:
+            __value = math.inf
         super().__setattr__(__name, __value)
 
     def at_infinity(self) -> bool:
@@ -66,7 +68,7 @@ class Point:
         num, den = simplify_fraction(fraction)
 
         # Handle case where simplified fraction is infinity
-        if simplify_fraction(fraction) == math.inf:
+        if simplify_fraction(fraction) == (math.inf, math.inf):
             return Point(self, math.inf, math.inf)
 
         lamb = (num * mod_inverse(abs(den), self.field)) % self.field

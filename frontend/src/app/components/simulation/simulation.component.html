@@ -111,7 +111,7 @@
     <mat-card-content>
         <h2>Alphabets</h2>
         <mat-button-toggle-group aria-label="Alphabets">
-            <mat-button-toggle *ngFor="let lang of languages | keyvalue" value="{{lang.key}}">
+            <mat-button-toggle *ngFor="let lang of languages | keyvalue" value="{{lang.key}}" (click)="setAlphabet(lang.key)">
                 {{lang.key.replace('_', ' ')}}
             </mat-button-toggle>
         </mat-button-toggle-group>

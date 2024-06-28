@@ -2,6 +2,7 @@ from typing import Any
 from sympy import isprime
 from app.services.point_service import Point
 
+
 class Curve:
     """Class representing an elliptic curve used in ECC.
 
@@ -18,7 +19,7 @@ class Curve:
     Methods:
         __setattr__: Set the value of an attribute.
         order: Return the order of the curve.
-        M: Return the size of the alphabet.
+        m: Return the size of the alphabet.
         calculate_points: Calculate the points on the curve.ç
         steps: Return the steps to calculate a scalar multiplication.
         encode: Encode a message using the alphabet.
@@ -36,23 +37,30 @@ class Curve:
         self.a, self.b, self.field = a, b, field
         self.base = Point(self)
 
-
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name in ["a", "b", "field", "n"] and not isinstance(__value, int):
-            raise ValueError(f'Invalid value! {__name} must be an integer.')
+            raise ValueError(f"Invalid value! {__name} must be an integer.")
         if __name == "points" and not isinstance(__value, list):
-            raise ValueError(f'Invalid value! {__name} must be a list.')
+            raise ValueError(f"Invalid value! {__name} must be a list.")
         if __name__ == "base" and type(__value) != Point:
-            raise ValueError(f'Invalid value! {__name} must be a Point.')
+            raise ValueError(f"Invalid value! {__name} must be a Point.")
         if __name == "public_keys" and not isinstance(__value, dict):
-            raise ValueError(f'Invalid value! {__name} must be a dict.')
-        if __name == "alphabet" and not isinstance(__value, str):
-            raise ValueError(f'Invalid value! {__name} must be a string.')
-        if __name == 'field' and not isprime(__value) and hasattr(self, 'simulation') and self.simulation:
-            raise ValueError('Not a prime number!')
+            raise ValueError(f"Invalid value! {__name} must be a dict.")
+        if (
+            __name == "field"
+            and not isprime(__value)
+            and hasattr(self, "simulation")
+            and self.simulation
+        ):
+            raise ValueError("Not a prime number!")
         super().__setattr__(__name, __value)
         if __name in ["a", "b", "field"]:
-            if hasattr(self, "a") and hasattr(self, "b") and hasattr(self, "field") and getattr(self, "simulation", False):
+            if (
+                hasattr(self, "a")
+                and hasattr(self, "b")
+                and hasattr(self, "field")
+                and getattr(self, "simulation", False)
+            ):
                 try:
                     self.calculate_points()
                 except ValueError:
@@ -61,8 +69,8 @@ class Curve:
     def order(self) -> int:
         return len(self.points) + 1
 
-    def M(self, alphabet: str = None) -> int:
-        return len(alphabet)
+    def m(self, alph: str = None) -> int:
+        return len(alph)
 
     def calculate_points(self) -> None:
         self.points = []
@@ -85,17 +93,19 @@ class Curve:
                 result.append(point * i)
         return result
 
-    def encode(self, alphabet: str, message: str) -> list:
-        if not alphabet:
+    def encode(self, alph: str, msg: str) -> list:
+        if not alph:
             raise ValueError("Alphabet not set!")
-        if self.field <= (self.M(alphabet) * 2):
-            raise ValueError(f'Invalid prime number! {self.field} must be greater than 2 * M (M = {self.M(alphabet)}).')
+        if self.field <= (self.m(alph) * 2):
+            raise ValueError(
+                f"Invalid prime number! {self.field} must be greater than 2 * M (M = {self.m(alph)})."
+            )
         encoded = []
-        h = self.field // self.M(alphabet)
-        for char in message:
-            if char not in alphabet:
-                raise ValueError(f'Invalid character! {char} not in alphabet.')
-            char_i = alphabet.index(char)
+        h = self.field // self.m(alph)
+        for char in msg:
+            if char not in alph:
+                raise ValueError(f"Invalid character! {char} not in alphabet.")
+            char_i = alph.index(char)
             j = 0
             while True:
                 x = (char_i * h + j) % self.field
@@ -106,55 +116,46 @@ class Curve:
             encoded.append(Point(self, x, y))
         return encoded
 
-    def decode(self, alphabet: str, points: list) -> str:
-        if not alphabet:
+    def decode(self, alph: str, points: list) -> str:
+        if not alph:
             raise ValueError("Alphabet not set!")
-        if self.field <= (self.M(alphabet) * 2):
-            raise ValueError(f'Invalid prime number! {self.field} must be greater than 2 * M (M = {self.M(alphabet)}).')
+        if self.field <= (self.m(alph) * 2):
+            raise ValueError(
+                f"Invalid prime number! {self.field} must be greater than 2 * M (M = {self.m(alph)})."
+            )
         decoded = ""
-        h = self.field // self.M(alphabet)
+        h = self.field // self.m(alph)
         for point in points:
             x = point.x
             nearest = x
             while nearest % h != 0 and nearest >= 0:
                 nearest -= 1
-            decoded += alphabet[nearest // h]
+            decoded += alph[nearest // h]
         return decoded
 
-    def encrypt(
-        self, alphabet: str, message: str, secret: int, public_key: "Point", shared=False
-    ) -> list:
+    def encrypt(self, alph: str, msg: str, private_k: int, public_k: "Point") -> list:
         if not self.base:
             raise ValueError("Base point not set!")
-        if public_key == Point(self):
+        if public_k == Point(self):
             raise ValueError("Public key of the other party not set!")
-        if secret == 0:
-            return [Point(self)] * len(message)
-        if not shared:
-            return [
-                (Qm + (public_key * secret), self.base * secret)
-                for Qm in self.encode(alphabet, message)
-            ]
-        return [(Qm + public_key, self.base * secret) for Qm in self.encode(alphabet, message)]
+        if private_k == 0:
+            return [Point(self)] * len(msg)
+        return [
+            (Qm + (public_k * private_k), self.base * private_k)
+            for Qm in self.encode(alph, msg)
+        ]
 
-    def decrypt(self, alphabet: str, points: list, secret: int, public_key: "Point" = None) -> str:
+    def decrypt(
+        self, alph: str, points: list, private_k: int, public_k: "Point"
+    ) -> str:
         if not self.base:
             raise ValueError("Base point not set!")
         msg = ""
-        if secret == 0:
+        if private_k == 0:
             return msg
-        if public_key is None:
-            for encrypted, public_key in points:
-                shared = public_key * secret
-                decrypted = encrypted - shared
-                if decrypted is None:
-                    return ""
-                msg += self.decode(alphabet, [decrypted])
-        else:
-            shared = public_key * secret
-            for encrypted in points:
-                decrypted = encrypted - shared
-                if decrypted is None:
-                    return ""
-                msg += self.decode(alphabet, [decrypted])
+        for encrypted in points:
+            decrypted = encrypted - public_k * private_k
+            if decrypted is None:
+                return ""
+            msg += self.decode(alph, [decrypted])
         return msg

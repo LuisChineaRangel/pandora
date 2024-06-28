@@ -40,12 +40,8 @@ class Curve:
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name in ["a", "b", "field", "n"] and not isinstance(__value, int):
             raise ValueError(f"Invalid value! {__name} must be an integer.")
-        if __name == "points" and not isinstance(__value, list):
-            raise ValueError(f"Invalid value! {__name} must be a list.")
         if __name__ == "base" and type(__value) != Point:
             raise ValueError(f"Invalid value! {__name} must be a Point.")
-        if __name == "public_keys" and not isinstance(__value, dict):
-            raise ValueError(f"Invalid value! {__name} must be a dict.")
         if (
             __name == "field"
             and not isprime(__value)
@@ -54,17 +50,17 @@ class Curve:
         ):
             raise ValueError("Not a prime number!")
         super().__setattr__(__name, __value)
-        if __name in ["a", "b", "field"]:
-            if (
-                hasattr(self, "a")
-                and hasattr(self, "b")
-                and hasattr(self, "field")
-                and getattr(self, "simulation", False)
-            ):
-                try:
-                    self.calculate_points()
-                except ValueError:
-                    pass
+        if (
+            __name in ["a", "b", "field"]
+            and hasattr(self, "a")
+            and hasattr(self, "b")
+            and hasattr(self, "field")
+            and getattr(self, "simulation", False)
+        ):
+            try:
+                self.calculate_points()
+            except ValueError:
+                pass
 
     def order(self) -> int:
         return len(self.points) + 1

@@ -72,8 +72,8 @@
         <form [formGroup]="secretsForm" class="mat-form-field-container">
             <mat-form-field>
                 <mat-label>Participants</mat-label>
-                <input matInput formControlName="num_parties" type="number" id="num_parties" placeholder="2-5"
-                    min="2" max="5" required>
+                <input matInput formControlName="num_parties" type="number" id="num_parties" placeholder="2-5" min="2"
+                    max="5" required>
             </mat-form-field>
             <mat-form-field>
                 <mat-label>Shared Key</mat-label>
@@ -111,7 +111,8 @@
     <mat-card-content>
         <h2>Alphabets</h2>
         <mat-button-toggle-group aria-label="Alphabets">
-            <mat-button-toggle *ngFor="let lang of languages | keyvalue" value="{{lang.key}}" (click)="setAlphabet(lang.key)">
+            <mat-button-toggle *ngFor="let lang of languages | keyvalue" value="{{lang.key}}"
+                (click)="setAlphabet(lang.key)" (keypress)="setAlphabet(lang.key)">
                 {{lang.key.replace('_', ' ')}}
             </mat-button-toggle>
         </mat-button-toggle-group>

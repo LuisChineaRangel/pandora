@@ -164,6 +164,13 @@ export class SimulationComponent implements OnInit {
             const formValue = this.baseForm.value;
             await this.curveService.setBase(this.uid, formValue.base).subscribe((res: HttpResponse<any>) => {
                 console.log(res.body);
+                this.p_chart.data.datasets[1] = {
+                    data: [formValue.base],
+                    backgroundColor: "rgba(255, 0, 0, 1)",
+                    radius: 7,
+                    order: 1,
+                };
+                this.p_chart.update();
             });
             this.secretsForm.reset();
             this.secretsForm.enable();
@@ -261,7 +268,7 @@ export class SimulationComponent implements OnInit {
         this.selectedCategoryControl.setValue(category);
     }
 
-    setAlphabet(key : string) {
+    setAlphabet(key: string) {
         this.alphabet = key;
 
     }

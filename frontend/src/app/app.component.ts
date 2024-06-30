@@ -27,12 +27,12 @@ export class AppComponent implements OnInit {
         await this.uidService.getUid().subscribe((uid: string) => {
             this.uidService.saveUid(uid);
         });
-        this.opened = !!localStorage.getItem('opened');
+        this.opened = localStorage.getItem('opened') === 'true';
     }
 
     toggleSidebar(): void {
         this.opened = !this.opened;
-        localStorage.setItem('opened', this.opened.toString());
+        this.opened ? localStorage.setItem('opened', 'true') : localStorage.removeItem('opened');
     }
 
     isActive(route: string): boolean {

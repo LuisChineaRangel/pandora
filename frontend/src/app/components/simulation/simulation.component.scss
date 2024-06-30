@@ -1,20 +1,97 @@
-.charts-container {
+mat-card>mat-card-content mat-card {
+    margin: 2rem;
+}
+
+#properties,
+#secrets,
+#alphabet-container,
+#send-form {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+    min-height: 40rem;
 }
 
-.chart {
-    flex: 1 0 45%;
-    max-width: 45%;
-    margin: 0;
+#alphabet-container {
+    min-height: 30rem;
+}
+
+#alphabet-textarea {
+    border: 0;
+}
+
+#properties>*,
+#secrets>*,
+#alphabet-container>*,
+#send-form>* {
+    flex: 1 0 37%;
+    max-width: 37%;
+}
+
+#predefined-curves {
+    margin: 2rem 0;
+}
+
+.charts-container,
+#alphabet-textarea {
+    flex: 1 0 55% !important;
+    max-width: 55% !important;
+    justify-content: space-between;
+}
+
+.charts-container > mat-card-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.canvas {
     position: relative;
-}
-
-.chart-container canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
+}
+
+#alphabet-textarea {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#alphabet-textarea>*>* {
+    width: 100%;
+}
+
+.mat-form-field-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 1rem 0;
+}
+
+.party {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.party-title {
+    font-weight: bold;
+}
+
+.party mat-form-field {
+    margin-top: 1rem;
+}
+
+#select-alphabet {
+    display: flex;
+    flex-direction: column;
+}
+
+#select-alphabet>* {
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
 }

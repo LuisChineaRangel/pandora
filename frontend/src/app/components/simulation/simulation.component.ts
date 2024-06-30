@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CoreModule, Point } from '@app/core/core.module';
 import { FormBuilder, FormControl, FormGroup, FormArray, Validators } from '@angular/forms';
 import { HttpResponse } from '@angular/common/http';
-import Chart, { Legend } from 'chart.js/auto';
+import Chart, { ChartConfiguration } from 'chart.js/auto';
 
 import { UidService } from '@services/uid.service';
 import { CurveService } from '@services/curve.service';
@@ -19,13 +19,19 @@ import { languages, options, string_format, special, Alphabet, NumericSystem } f
 })
 export class SimulationComponent implements OnInit {
     uid: string = String();
+
     curveForm: FormGroup;
     baseForm: FormGroup;
     secretsForm: FormGroup;
+    sendForm: FormGroup;
+    receiveForm: FormGroup;
+    selectedCategoryControl: FormControl = new FormControl();
+
     points: Point[] = [];
     languages: { [key: string]: string } = languages;
     numericSystems: { [key: string]: string | number } = { ...string_format, ...special };
     options: { [key: string]: boolean } = options;
+    alphabet: Alphabet | NumericSystem = new Alphabet();
 
     @ViewChild('Curve', { static: true }) curveChartRef: ElementRef<HTMLCanvasElement> | any;
     @ViewChild('Points', { static: true }) pointsChartRef: ElementRef<HTMLCanvasElement> | any;
@@ -36,15 +42,13 @@ export class SimulationComponent implements OnInit {
 
     loading_curve: boolean = false;
     loading_points: boolean = false;
+    selected_sender: boolean = false;
 
     curves_data: { [key: string]: { a: number, b: number, field?: number } } = {
         'SECP256k1': { a: 0, b: 7 },
         'Curve448': { a: 1, b: 2 },
         'Curve25519': { a: 5, b: 7 },
     };
-
-    selectedCategoryControl: FormControl = new FormControl();
-    alphabet: Alphabet | NumericSystem = new Alphabet();
 
     constructor(private fb: FormBuilder, private uidService: UidService, private curveService: CurveService) {
         this.curveForm = this.fb.group({
@@ -57,11 +61,28 @@ export class SimulationComponent implements OnInit {
         });
         this.baseForm.disable();
         this.secretsForm = this.fb.group({
-            num_parties: ['', [Validators.required, Validators.min(2), Validators.max(5)]],
+            num_parties: ['', [Validators.required, Validators.min(2), Validators.max(4)]],
             partyDetails: this.fb.array([]),
             shared: [''],
         });
         this.secretsForm.disable();
+        this.sendForm = this.fb.group({
+            sender: ['', [Validators.required]],
+            receivers: ['', [Validators.required]],
+            message: ['', [Validators.required]]
+        });
+        this.sendForm.get('sender')?.disable();
+        this.sendForm.get('receivers')?.disable();
+        this.receiveForm = this.fb.group({
+            sender: ['', [Validators.required]],
+            receivers: ['', [Validators.required]],
+            encrypted: ['', [Validators.required]],
+            decryption_key: ['', [Validators.required]],
+        });
+        this.receiveForm.get('sender')?.disable();
+        this.receiveForm.get('receivers')?.disable();
+        this.receiveForm.get('encrypted')?.disable();
+        this.receiveForm.get('decryption_key')?.disable();
     }
 
     async ngOnInit() {
@@ -69,6 +90,8 @@ export class SimulationComponent implements OnInit {
         await this.uidService.renewUid(this.uid).subscribe((uid: string) => {
             this.uidService.saveUid(uid);
         });
+        this.c_chart = new Chart(this.curveChartRef.nativeElement.getContext('2d'), {} as ChartConfiguration);
+        this.p_chart = new Chart(this.pointsChartRef.nativeElement.getContext('2d'), {} as ChartConfiguration);
     }
 
     ngAfterViewInit() {
@@ -79,10 +102,22 @@ export class SimulationComponent implements OnInit {
             this.onSubmitBase();
         });
         this.secretsForm.get('num_parties')?.valueChanges.subscribe((numParties: number) => {
+            this.secretsForm.get('partyDetails')?.reset();
+            this.secretsForm.get('shared')?.reset();
             this.updatePartyDetails(numParties);
+            if (this.p_chart) {
+                this.p_chart.data.datasets = this.p_chart.data.datasets.filter((dataset: any) => dataset.label === "ECC Points" || dataset.label === "Base Point");
+                this.p_chart.update();
+            }
         });
-        this.selectedCategoryControl.valueChanges.subscribe((category: string) => {
+        this.selectedCategoryControl.valueChanges.subscribe(() => {
             this.alphabetRef.nativeElement.value = String();
+        });
+        this.sendForm.get('sender')?.valueChanges.subscribe(() => {
+            this.selected_sender = !!this.sendForm.get('sender')?.valid;
+            this.selected_sender ? this.sendForm.get('receivers')?.enable() : this.sendForm.get('receivers')?.disable();
+            if (!this.selected_sender)
+                this.sendForm.get('receivers')?.reset();
         });
     }
 
@@ -231,7 +266,6 @@ export class SimulationComponent implements OnInit {
                         data: steps,
                         backgroundColor: "rgba(255, 240, 0, 1)",
                         borderColor: "rgba(255, 240, 0, 0.5)",
-                        radius: 5,
                         order: 98,
                         animation: false,
                         fill: false,
@@ -279,8 +313,10 @@ export class SimulationComponent implements OnInit {
                 });
                 if (break_flag) break;
             }
-            if (!break_flag)
+            if (!break_flag) {
                 this.secretsForm.get('shared')?.setValue(`(${sharedKey.x}, ${sharedKey.y})`);
+                this.sendForm.get('sender')?.enable();
+            }
         }
         return Promise.resolve();
     }
@@ -292,19 +328,21 @@ export class SimulationComponent implements OnInit {
 
         let display_values: Point[] = [];
         for (let i = 0; i < numParties; i++) {
-            let publicKey = partyDetailsArray.at(i).getRawValue().public_key;
-            if (publicKey === '(O)') continue;
+            if (!partyDetailsArray.at(i)) continue;
+            let publicKey = partyDetailsArray.at(i).getRawValue()?.public_key;
+            if (publicKey === '(O)' || !publicKey) continue;
             display_values.push(Point.fromString(publicKey));
         }
 
-        this.p_chart.data.datasets.push({
-            label: "Public Keys",
-            data: display_values,
-            backgroundColor: "rgba(78, 232, 223, 1)",
-            radius: 7,
-            order: 2,
-            animation: false,
-        });
+        if (display_values.length !== 0)
+            this.p_chart.data.datasets.push({
+                label: "Public Keys",
+                data: display_values,
+                backgroundColor: "rgba(78, 232, 223, 1)",
+                radius: 7,
+                order: 2,
+                animation: false,
+            });
 
         let sharedKey = this.secretsForm.getRawValue().shared;
         if (sharedKey && sharedKey !== '(O)') {

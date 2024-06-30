@@ -1,47 +1,64 @@
 <mat-card>
-    <mat-card-title>
-        <h1>ECC Simulation</h1>
-    </mat-card-title>
+    <mat-card-header>
+        <mat-card-title>
+            <h1>ECC Simulation</h1>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content>
-        <mat-card>
-            <mat-card-header>
-                <mat-card-title>
-                    <h2>Properties</h2>
-                </mat-card-title>
-            </mat-card-header>
-            <div>
-                <button mat-button (click)="loadCurveData('SECP256k1')">SECP256k1</button>
-                <button mat-button (click)="loadCurveData('Curve448')">Curve448</button>
-                <button mat-button (click)="loadCurveData('Curve25519')">Curve25519</button>
-            </div>
-            <form [formGroup]="curveForm">
-                Curve: y² = x³ +
-                <mat-form-field>
-                    <input matInput type="number" formControlName="a" [placeholder]="'a'">
-                </mat-form-field>
-                x +
-                <mat-form-field>
-                    <input matInput type="number" formControlName="b" [placeholder]="'b'">
-                </mat-form-field>
-                <label for="field">Field</label>
-                <mat-form-field>
-                    <input matInput type="number" formControlName="field" id="field" [placeholder]="'2, 3, 5, 7...'">
-                    <mat-error *ngIf="curveForm.get('field')?.hasError('primeError')">
-                        The field value must be a prime number.
-                    </mat-error>
-                </mat-form-field>
-            </form>
-            <form [formGroup]="baseForm">
-                <label for="base">Base Point</label>
-                <mat-form-field>
-                    <mat-select id="base" formControlName="base">
-                        <mat-option *ngFor="let point of points" [value]="point">{{point}}</mat-option>
-                    </mat-select>
-                </mat-form-field>
-            </form>
-        </mat-card>
-        <mat-card class="charts-container">
-            <div class="chart">
+        <div id="properties">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>
+                        <h2>Properties</h2>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <form [formGroup]="curveForm">
+                        <div id="predefined-curves" class="mat-form-field-container">
+                            <label>Predefined Curves</label>
+                            <div>
+                                <ng-container *ngIf="curves_data">
+                                    <button mat-button *ngFor="let curve of curves_data | keyvalue"
+                                        (click)="loadCurveData(curve.key)">{{curve.key}}</button>
+                                </ng-container>
+                            </div>
+                        </div>
+                        <div>
+                            Curve: y² = x³ +
+                            <mat-form-field>
+                                <mat-label>a</mat-label>
+                                <input matInput type="number" formControlName="a" [placeholder]="'a'">
+                            </mat-form-field>
+                            x +
+                            <mat-form-field>
+                                <mat-label>b</mat-label>
+                                <input matInput type="number" formControlName="b" [placeholder]="'b'">
+                            </mat-form-field>
+                        </div>
+                        <div class="mat-form-field-container">
+                            <label for="field">Prime Field</label>
+                            <mat-form-field>
+                                <input matInput type="number" formControlName="field" id="field"
+                                    [placeholder]="'2, 3, 4, 7...'">
+                                <mat-error *ngIf="curveForm.get('field')?.hasError('primeError')">
+                                    The field value must be a prime number.
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+                    </form>
+                    <form [formGroup]="baseForm">
+                        <div class="mat-form-field-container">
+                            <label>Base Point</label>
+                            <mat-form-field>
+                                <mat-select formControlName="base">
+                                    <mat-option *ngFor="let point of points" [value]="point">{{point}}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                    </form>
+                </mat-card-content>
+            </mat-card>
+            <mat-card class="charts-container">
                 <mat-card-header>
                     <mat-card-title>
                         <h3>ECC Simulation</h3>
@@ -49,12 +66,53 @@
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                    <div>
+                    <div class="canvas">
                         <canvas #Curve></canvas>
                     </div>
                 </mat-card-content>
-            </div>
-            <div class="chart">
+            </mat-card>
+        </div>
+        <div id="secrets">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>
+                        <h2>Secrets</h2>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <form [formGroup]="secretsForm" class="mat-form-field-container">
+                        <mat-form-field>
+                            <mat-label>Participants</mat-label>
+                            <input matInput formControlName="num_parties" type="number" id="num_parties"
+                                placeholder="2-4" min="2" max="4">
+                            <mat-error>
+                                Numbers of Participants must be 2-4
+                            </mat-error>
+                        </mat-form-field>
+                        <div formArrayName="partyDetails">
+                            <div *ngFor="let party of partyDetails.controls; let i = index" [formGroupName]="i"
+                                class="party">
+                                <span class="party-title">Party {{ i + 1 }}</span>
+                                <mat-form-field>
+                                    <input matInput formControlName="private_key" placeholder="Private Key">
+                                    <mat-error
+                                        *ngIf="party.get('private_key')?.invalid && party.get('private_key')?.touched">
+                                        Private Key is required and must be a positive number.
+                                    </mat-error>
+                                </mat-form-field>
+                                <mat-form-field>
+                                    <input matInput formControlName="public_key" placeholder="Public Key">
+                                </mat-form-field>
+                            </div>
+                        </div>
+                        <mat-form-field *ngIf="secretsForm.get('num_parties')?.valid">
+                            <mat-label>Shared Key</mat-label>
+                            <input matInput formControlName="shared" type="text" id="shared" placeholder="x, y">
+                        </mat-form-field>
+                    </form>
+                </mat-card-content>
+            </mat-card>
+            <mat-card class="charts-container">
                 <mat-card-header>
                     <mat-card-title>
                         <h3>Points on Curve</h3>
@@ -62,133 +120,173 @@
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                    <div>
+                    <div class="canvas">
                         <canvas #Points></canvas>
                     </div>
                 </mat-card-content>
-            </div>
-        </mat-card>
+            </mat-card>
+        </div>
 
-        <mat-card>
-            <mat-card-header>
-                <mat-card-title>
-                    <h2>Secrets</h2>
-                </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <form [formGroup]="secretsForm" class="mat-form-field-container">
-                    <mat-form-field>
-                        <mat-label>Participants</mat-label>
-                        <input matInput formControlName="num_parties" type="number" id="num_parties" placeholder="2-5"
-                            min="2" max="5" required>
-                    </mat-form-field>
-                    <mat-form-field>
-                        <mat-label>Shared Key</mat-label>
-                        <input matInput formControlName="shared" type="text" id="shared" placeholder="x, y">
-                    </mat-form-field>
-                    <div formArrayName="partyDetails">
-                        <div *ngFor="let party of partyDetails.controls; let i = index" [formGroupName]="i">
-                            <h3>Party {{ i + 1 }}</h3>
-                            <mat-form-field>
-                                <input matInput formControlName="private_key" placeholder="Private Key" required>
-                                <mat-error
-                                    *ngIf="party.get('private_key')?.invalid && party.get('private_key')?.touched">
-                                    Private Key is required and must be a positive number.
-                                </mat-error>
-                            </mat-form-field>
-                            <mat-form-field>
-                                <input matInput formControlName="public_key" placeholder="Public Key">
-                            </mat-form-field>
+        <div id="alphabet-container">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>
+                        <h3>Choose alphabet</h3>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content id="select-alphabet">
+                    <div>
+                        <div>
+                            <mat-button-toggle-group aria-label="Choose Category"
+                                [formControl]="selectedCategoryControl" [hideSingleSelectionIndicator]="true">
+                                <mat-button-toggle value="alphabet">Alphabet</mat-button-toggle>
+                                <mat-button-toggle value="numeric">Number System</mat-button-toggle>
+                            </mat-button-toggle-group>
                         </div>
                     </div>
-                </form>
-            </mat-card-content>
-        </mat-card>
+                    <div *ngIf="selectedCategoryControl.value === 'alphabet'">
+                        <mat-label>Predefined Alphabets</mat-label>
+                        <mat-form-field>
+                            <mat-select aria-label="Alphabets">
+                                <mat-option *ngFor="let lang of languages | keyvalue" [value]="lang.key"
+                                    (click)="setAlphabet(lang.key)" (keypress)="setAlphabet(lang.key)">
+                                    {{lang.key.replace('_', ' ')}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div *ngIf="selectedCategoryControl.value === 'alphabet'">
+                        <mat-label>Options</mat-label>
+                        <div>
+                            <mat-button-toggle-group aria-label="Options" [hideSingleSelectionIndicator]="true">
+                                <mat-button-toggle *ngFor="let option of options | keyvalue" value="{{option.key}}"
+                                    (click)="setOption(option.key)" (keypress)="setOption(option.key)">
+                                    {{option.key.replace('_', ' ')}}
+                                </mat-button-toggle>
+                            </mat-button-toggle-group>
+                        </div>
+                    </div>
+                    <div *ngIf="selectedCategoryControl.value === 'numeric'">
+                        <mat-label>Predefined Number Systems</mat-label>
+                        <mat-form-field>
+                            <mat-select aria-label="Number Systems">
+                                <mat-option *ngFor="let system of numericSystems | keyvalue" [value]="system.key"
+                                    (click)="setAlphabet(system.key)" (keypress)="setAlphabet(system.key)">
+                                    {{system.key.replace('_', ' ')}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </mat-card-content>
+            </mat-card>
 
+            <mat-card id="alphabet-textarea">
+                <mat-card-header>
+                    <mat-card-title>
+                        <h3>...or write your own!</h3>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <mat-form-field appearance="outline" id="alphabet">
+                        <mat-label>Define the Alphabet</mat-label>
+                        <textarea #Alphabet matInput rows="10"></textarea>
+                    </mat-form-field>
+                </mat-card-content>
+            </mat-card>
+        </div>
 
-        <mat-card>
-            <mat-card-header>
-                <mat-card-title>
-                    <h2>Choose either Alphabet or Number System</h2>
-                </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <mat-button-toggle-group aria-label="Choose Category" [formControl]="selectedCategoryControl">
-                    <mat-button-toggle value="alphabet">Alphabet</mat-button-toggle>
-                    <mat-button-toggle value="numeric">Number System</mat-button-toggle>
-                </mat-button-toggle-group>
-            </mat-card-content>
-        </mat-card>
-        <mat-card *ngIf="selectedCategoryControl.value === 'alphabet'">
-            <mat-card-header>
-                <mat-card-title>
-                    <h2>Alphabets</h2>
-                </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <mat-button-toggle-group aria-label="Alphabets">
-                    <mat-button-toggle *ngFor="let lang of languages | keyvalue" value="{{lang.key}}"
-                        (click)="setAlphabet(lang.key)" (keypress)="setAlphabet(lang.key)">
-                        {{lang.key.replace('_', ' ')}}
-                    </mat-button-toggle>
-                </mat-button-toggle-group>
-            </mat-card-content>
-        </mat-card>
-
-        <mat-card *ngIf="selectedCategoryControl.value === 'numeric'">
-            <mat-card-header>
-                <mat-card-title>
-                    <h2>Number Systems</h2>
-                </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <mat-button-toggle-group aria-label="Number Systems">
-                    <mat-button-toggle *ngFor="let system of numericSystems | keyvalue" value="{{system.key}}"
-                        (click)="setAlphabet(system.key)" (keypress)="setAlphabet(system.key)">
-                        {{system.key.replace('_', ' ')}}
-                    </mat-button-toggle>
-                </mat-button-toggle-group>
-            </mat-card-content>
-        </mat-card>
-
-        <mat-card *ngIf="selectedCategoryControl.value === 'alphabet'">
-            <mat-card-header>
-                <mat-card-title>
-                    <h2>Options</h2>
-                </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <mat-button-toggle-group aria-label="Options">
-                    <mat-button-toggle *ngFor="let option of options | keyvalue" value="{{option.key}}"
-                        (click)="setOption(option.key)" (keypress)="setOption(option.key)">
-                        {{option.key.replace('_', ' ')}}
-                    </mat-button-toggle>
-                </mat-button-toggle-group>
-            </mat-card-content>
-        </mat-card>
-        <mat-card>
-            <mat-card-content>
-                <mat-form-field appearance="outline">
-                    <mat-label>Define the Alphabet</mat-label>
-                    <textarea #Alphabet matInput rows="8" id="alphabet" required></textarea>
-                </mat-form-field>
-            </mat-card-content>
-        </mat-card>
-        <mat-card>
-            <mat-card-header>
-                <mat-card-title>
-                    <h2>Sending message</h2>
-                </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <mat-form-field>
-                    <mat-label>Sender</mat-label>
-                    <select matNativeControl formControlName="sender">
-                        <option *ngFor="let party of partyDetails.controls; let i = index" [value]="i">Party {{ i + 1 }}
-                        </option>
-                    </select>
-                </mat-form-field>
-            </mat-card-content>
-        </mat-card>
+        <form [formGroup]="sendForm" id="send-form">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>
+                        <h2>Sending messages</h2>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div>
+                        <mat-form-field>
+                            <mat-label>Sender</mat-label>
+                            <mat-select formControlName="sender">
+                                <mat-option *ngFor="let party of partyDetails.controls; let i = index" [value]="i">
+                                    Party {{ i + 1 }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div>
+                        <mat-form-field>
+                            <mat-label>Receivers</mat-label>
+                            <mat-select formControlName="receivers" multiple>
+                                <ng-container *ngFor="let party of partyDetails.controls; let i = index">
+                                    <mat-option *ngIf="i !== sendForm.get('sender')?.value" [value]="i">
+                                        Party {{ i + 1 }}
+                                    </mat-option>
+                                </ng-container>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Introduce message</mat-label>
+                            <textarea formControlName="message" matInput rows="8"></textarea>
+                        </mat-form-field>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+            <mat-card id="encrypted-message">
+                <mat-card-header>
+                    <mat-card-title>
+                        <h3>Encrypted Message</h3>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                </mat-card-content>
+            </mat-card>
+        </form>
+        <form [formGroup]="receiveForm">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>
+                        <h2>Receiving messages</h2>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div>
+                        <mat-form-field>
+                            <mat-label>Sender</mat-label>
+                            <mat-select formControlName="sender">
+                                <mat-option *ngFor="let party of partyDetails.controls; let i = index" [value]="i">
+                                    Party {{ i + 1 }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div>
+                        <mat-form-field>
+                            <mat-label>Receivers</mat-label>
+                            <mat-select formControlName="receivers" multiple>
+                                <ng-container *ngFor="let party of partyDetails.controls; let i = index">
+                                    <mat-option *ngIf="i !== sendForm.get('sender')?.value" [value]="i">
+                                        Party {{ i + 1 }}
+                                    </mat-option>
+                                </ng-container>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div>
+                        <mat-form-field>
+                            <mat-label>Decryption Key</mat-label>
+                            <input matInput formControlName="decryption_key" type="text">
+                        </mat-form-field>
+                    </div>
+                    <div>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Introduce encrypted message</mat-label>
+                            <textarea formControlName="encrypted" matInput rows="8"></textarea>
+                        </mat-form-field>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </form>
     </mat-card-content>
 </mat-card>

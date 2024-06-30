@@ -1,12 +1,19 @@
+:host {
+    --white: rgba(255, 255, 255, 1);
+    --black: rgba(0, 0, 0, 1);
+    --error: rgba(244, 67, 54, 1);
+}
+
 mat-toolbar {
     position: fixed;
     height: 10vh;
     z-index: 999999;
-    border-bottom: 0.2rem solid rgba(255, 255, 255, 1);
+    border-bottom: 0.2rem solid var(--black);
 }
 
 mat-sidenav-container {
     min-height: 100vh;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 mat-sidenav-container mat-sidenav {
@@ -15,7 +22,7 @@ mat-sidenav-container mat-sidenav {
     top: 10vh;
     box-sizing: content-box;
     border-radius: 0;
-    border-right: 0.2rem solid rgba(255, 255, 255, 1) !important;
+    border-right: 0.2rem solid var(--black) !important;
     overflow: visible;
 }
 
@@ -34,5 +41,6 @@ mat-sidenav-container mat-sidenav .sidebarLink .mat-icon {
 
 mat-sidenav-container mat-sidenav-content {
     margin-top: 10vh;
+    padding: 2.5% 5%;
     min-height: 100vh;
 }

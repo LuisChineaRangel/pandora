@@ -33,13 +33,16 @@ export function axisConfig(type: string, position: string, min: number, max: num
  * @description Function to create the chart options for the elliptic curve
  * @returns {Object} - Chart options
  */
-export function chartOptions(x_min: number, x_max: number, y_min: number, y_max: number, elements: any = {}) {
+export function chartOptions(x_min: number, x_max: number, y_min: number, y_max: number, elements: any = {}, display = false) {
     return {
         events: [],
         responsive: true,
         plugins: {
             legend: {
-                display: false,
+                display: display,
+                labels: {
+                    filter: item => !/Steps/.test(item.text)
+                }
             },
         },
         scales: {

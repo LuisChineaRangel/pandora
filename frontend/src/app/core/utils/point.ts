@@ -25,6 +25,10 @@ export class Point {
         return JSON.stringify({ x: this.x, y: this.y }, null, 4);
     }
 
+    atInfinity() {
+        return this.x === -1 && this.y === -1;
+    }
+
     static fromString(str: string) {
         if (str === '(O)')
             return new Point(-1, -1);

@@ -4,7 +4,11 @@
     </mat-card-title>
     <mat-card-content>
         <mat-card>
-            <h2>Properties</h2>
+            <mat-card-header>
+                <mat-card-title>
+                    <h2>Properties</h2>
+                </mat-card-title>
+            </mat-card-header>
             <div>
                 <button mat-button (click)="loadCurveData('SECP256k1')">SECP256k1</button>
                 <button mat-button (click)="loadCurveData('Curve448')">Curve448</button>
@@ -36,116 +40,155 @@
                 </mat-form-field>
             </form>
         </mat-card>
-    </mat-card-content>
-</mat-card>
-<mat-card class="charts-container">
-    <div class="chart">
-        <mat-card-header>
-            <mat-card-title>
-                ECC Simulation
-                <mat-progress-spinner *ngIf="loading_curve" mode="indeterminate"></mat-progress-spinner>
-            </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-            <div>
-                <canvas #Curve></canvas>
+        <mat-card class="charts-container">
+            <div class="chart">
+                <mat-card-header>
+                    <mat-card-title>
+                        <h3>ECC Simulation</h3>
+                        <mat-progress-spinner *ngIf="loading_curve" mode="indeterminate"></mat-progress-spinner>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div>
+                        <canvas #Curve></canvas>
+                    </div>
+                </mat-card-content>
             </div>
-        </mat-card-content>
-    </div>
-    <div class="chart">
-        <mat-card-header>
-            <mat-card-title>Points
-                <mat-progress-spinner *ngIf="loading_points" mode="indeterminate"></mat-progress-spinner>
-            </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-            <div>
-                <canvas #Points></canvas>
+            <div class="chart">
+                <mat-card-header>
+                    <mat-card-title>
+                        <h3>Points on Curve</h3>
+                        <mat-progress-spinner *ngIf="loading_points" mode="indeterminate"></mat-progress-spinner>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div>
+                        <canvas #Points></canvas>
+                    </div>
+                </mat-card-content>
             </div>
-        </mat-card-content>
-    </div>
-</mat-card>
+        </mat-card>
 
-<mat-card>
-    <mat-card-content>
-        <h2>Secrets</h2>
-        <form [formGroup]="secretsForm" class="mat-form-field-container">
-            <mat-form-field>
-                <mat-label>Participants</mat-label>
-                <input matInput formControlName="num_parties" type="number" id="num_parties" placeholder="2-5" min="2"
-                    max="5" required>
-            </mat-form-field>
-            <mat-form-field>
-                <mat-label>Shared Key</mat-label>
-                <input matInput formControlName="shared" type="text" id="shared" placeholder="x, y">
-            </mat-form-field>
-            <div formArrayName="partyDetails">
-                <div *ngFor="let party of partyDetails.controls; let i = index" [formGroupName]="i">
-                    <h3>Party {{ i + 1 }}</h3>
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title>
+                    <h2>Secrets</h2>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form [formGroup]="secretsForm" class="mat-form-field-container">
                     <mat-form-field>
-                        <input matInput formControlName="private_key" placeholder="Private Key" required>
-                        <mat-error *ngIf="party.get('private_key')?.invalid && party.get('private_key')?.touched">
-                            Private Key is required and must be a positive number.
-                        </mat-error>
+                        <mat-label>Participants</mat-label>
+                        <input matInput formControlName="num_parties" type="number" id="num_parties" placeholder="2-5"
+                            min="2" max="5" required>
                     </mat-form-field>
                     <mat-form-field>
-                        <input matInput formControlName="public_key" placeholder="Public Key">
+                        <mat-label>Shared Key</mat-label>
+                        <input matInput formControlName="shared" type="text" id="shared" placeholder="x, y">
                     </mat-form-field>
-                </div>
-            </div>
-        </form>
-    </mat-card-content>
-</mat-card>
+                    <div formArrayName="partyDetails">
+                        <div *ngFor="let party of partyDetails.controls; let i = index" [formGroupName]="i">
+                            <h3>Party {{ i + 1 }}</h3>
+                            <mat-form-field>
+                                <input matInput formControlName="private_key" placeholder="Private Key" required>
+                                <mat-error
+                                    *ngIf="party.get('private_key')?.invalid && party.get('private_key')?.touched">
+                                    Private Key is required and must be a positive number.
+                                </mat-error>
+                            </mat-form-field>
+                            <mat-form-field>
+                                <input matInput formControlName="public_key" placeholder="Public Key">
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </form>
+            </mat-card-content>
+        </mat-card>
 
 
-<mat-card>
-    <mat-card-content>
-        <h2>Choose either Alphabet or Number System</h2>
-        <mat-button-toggle-group aria-label="Choose Category" [formControl]="selectedCategoryControl">
-            <mat-button-toggle value="alphabet">Alphabet</mat-button-toggle>
-            <mat-button-toggle value="number">Number System</mat-button-toggle>
-        </mat-button-toggle-group>
-    </mat-card-content>
-</mat-card>
-<mat-card *ngIf="selectedCategoryControl.value === 'alphabet'">
-    <mat-card-content>
-        <h2>Alphabets</h2>
-        <mat-button-toggle-group aria-label="Alphabets">
-            <mat-button-toggle *ngFor="let lang of languages | keyvalue" value="{{lang.key}}"
-                (click)="setAlphabet(lang.key)" (keypress)="setAlphabet(lang.key)">
-                {{lang.key.replace('_', ' ')}}
-            </mat-button-toggle>
-        </mat-button-toggle-group>
-    </mat-card-content>
-</mat-card>
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title>
+                    <h2>Choose either Alphabet or Number System</h2>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-button-toggle-group aria-label="Choose Category" [formControl]="selectedCategoryControl">
+                    <mat-button-toggle value="alphabet">Alphabet</mat-button-toggle>
+                    <mat-button-toggle value="numeric">Number System</mat-button-toggle>
+                </mat-button-toggle-group>
+            </mat-card-content>
+        </mat-card>
+        <mat-card *ngIf="selectedCategoryControl.value === 'alphabet'">
+            <mat-card-header>
+                <mat-card-title>
+                    <h2>Alphabets</h2>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-button-toggle-group aria-label="Alphabets">
+                    <mat-button-toggle *ngFor="let lang of languages | keyvalue" value="{{lang.key}}"
+                        (click)="setAlphabet(lang.key)" (keypress)="setAlphabet(lang.key)">
+                        {{lang.key.replace('_', ' ')}}
+                    </mat-button-toggle>
+                </mat-button-toggle-group>
+            </mat-card-content>
+        </mat-card>
 
-<mat-card *ngIf="selectedCategoryControl.value === 'number'">
-    <mat-card-content>
-        <h2>Number Systems</h2>
-        <mat-button-toggle-group aria-label="Number Systems">
-            <mat-button-toggle *ngFor="let system of numericSystems | keyvalue" value="{{system.key}}">
-                {{system.key.replace('_', ' ')}}
-            </mat-button-toggle>
-        </mat-button-toggle-group>
-    </mat-card-content>
-</mat-card>
+        <mat-card *ngIf="selectedCategoryControl.value === 'numeric'">
+            <mat-card-header>
+                <mat-card-title>
+                    <h2>Number Systems</h2>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-button-toggle-group aria-label="Number Systems">
+                    <mat-button-toggle *ngFor="let system of numericSystems | keyvalue" value="{{system.key}}"
+                        (click)="setAlphabet(system.key)" (keypress)="setAlphabet(system.key)">
+                        {{system.key.replace('_', ' ')}}
+                    </mat-button-toggle>
+                </mat-button-toggle-group>
+            </mat-card-content>
+        </mat-card>
 
-<mat-card *ngIf="selectedCategoryControl.value === 'alphabet'">
-    <mat-card-content>
-        <h2>Options</h2>
-        <mat-button-toggle-group aria-label="Options">
-            <mat-button-toggle value="alphanumeric" disabled>Alphanumeric</mat-button-toggle>
-            <mat-button-toggle value="case-insensitive" disabled>Case Insensitive</mat-button-toggle>
-            <mat-button-toggle value="uppercase" disabled>Uppercase</mat-button-toggle>
-            <mat-button-toggle value="lower-upper" disabled>Lower/Upper</mat-button-toggle>
-        </mat-button-toggle-group>
-    </mat-card-content>
-</mat-card>
-<mat-card>
-    <mat-card-content>
-        <mat-form-field appearance="outline">
-            <mat-label>Define the Alphabet</mat-label>
-            <textarea matInput rows="8" id="alphabet" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" required></textarea>
-        </mat-form-field>
+        <mat-card *ngIf="selectedCategoryControl.value === 'alphabet'">
+            <mat-card-header>
+                <mat-card-title>
+                    <h2>Options</h2>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-button-toggle-group aria-label="Options">
+                    <mat-button-toggle *ngFor="let option of options | keyvalue" value="{{option.key}}"
+                        (click)="setOption(option.key)" (keypress)="setOption(option.key)">
+                        {{option.key.replace('_', ' ')}}
+                    </mat-button-toggle>
+                </mat-button-toggle-group>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-content>
+                <mat-form-field appearance="outline">
+                    <mat-label>Define the Alphabet</mat-label>
+                    <textarea #Alphabet matInput rows="8" id="alphabet" required></textarea>
+                </mat-form-field>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title>
+                    <h2>Sending message</h2>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-form-field>
+                    <mat-label>Sender</mat-label>
+                    <select matNativeControl formControlName="sender">
+                        <option *ngFor="let party of partyDetails.controls; let i = index" [value]="i">Party {{ i + 1 }}
+                        </option>
+                    </select>
+                </mat-form-field>
+            </mat-card-content>
+        </mat-card>
     </mat-card-content>
 </mat-card>

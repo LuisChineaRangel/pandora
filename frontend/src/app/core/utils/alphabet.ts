@@ -19,7 +19,7 @@ export const languages : { [key: string]: string } = {
     "utf-8": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ",
 }
 
-const options = {
+export const options = {
     "case-insensitive": false,
     "alphanumeric": false,
     "uppercase": false,
@@ -114,7 +114,7 @@ export class Alphabet extends BasicAlphabet {
  * @param {string} special Special numeric system
  */
 export class NumericSystem extends BasicAlphabet {
-    protected _base: number;
+    protected _base: number | string = Number();
     static readonly string_format = string_format;
     static readonly special = special;
 
@@ -123,9 +123,9 @@ export class NumericSystem extends BasicAlphabet {
      * @constructor
      * @param {number} base Base of the numeric system. It can be a number, a string format or a special numeric system
      */
-    constructor(base = 10) {
+    constructor(base : number | string = 10) {
         super();
-        this._base = base;
+        this.base = base;
     }
 
     /**
@@ -141,13 +141,14 @@ export class NumericSystem extends BasicAlphabet {
      * @param {number} base Base of the numeric system. It can be a number, a string format or a special numeric system
      * @throws {Error} Invalid base
      */
-    set base(base) {
+    set base(base : number | string) {
         if (typeof base !== 'number' && !(base in NumericSystem.string_format) && !(base in NumericSystem.special))
             throw new Error("Invalid base");
         if (base in NumericSystem.string_format)
             this._base = NumericSystem.string_format[base];
         else
             this._base = base;
+        console.log(this.toString());
     }
 
     /**
@@ -157,6 +158,6 @@ export class NumericSystem extends BasicAlphabet {
     get characters() {
         if (this._base in NumericSystem.special)
             return Array.from(NumericSystem.special[this._base]);
-        return Array.from({ length: this._base }, (_, i) => i.toString());
+        return Array.from({ length: this._base as number }, (_, i) => i.toString());
     }
 }

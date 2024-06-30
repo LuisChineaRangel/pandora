@@ -2,13 +2,13 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CoreModule, Point } from '@app/core/core.module';
 import { FormBuilder, FormControl, FormGroup, FormArray, Validators } from '@angular/forms';
 import { HttpResponse } from '@angular/common/http';
-import Chart from 'chart.js/auto';
+import Chart, { Legend } from 'chart.js/auto';
 
 import { UidService } from '@services/uid.service';
 import { CurveService } from '@services/curve.service';
 import { chartOptions, calculateConfig, displayCurve, dsConfig } from '@app/core/utils/chart';
 import { primeValidator } from '@app/core/utils/validators';
-import { languages, string_format, special, Alphabet, NumericSystem } from '@app/core/utils/alphabet';
+import { languages, options, string_format, special, Alphabet, NumericSystem } from '@app/core/utils/alphabet';
 
 @Component({
     selector: 'app-simulation',
@@ -25,9 +25,11 @@ export class SimulationComponent implements OnInit {
     points: Point[] = [];
     languages: { [key: string]: string } = languages;
     numericSystems: { [key: string]: string | number } = { ...string_format, ...special };
+    options: { [key: string]: boolean } = options;
 
     @ViewChild('Curve', { static: true }) curveChartRef: ElementRef<HTMLCanvasElement> | any;
     @ViewChild('Points', { static: true }) pointsChartRef: ElementRef<HTMLCanvasElement> | any;
+    @ViewChild('Alphabet', { static: true }) alphabetRef: ElementRef | any;
 
     c_chart: any;
     p_chart: any;
@@ -42,7 +44,7 @@ export class SimulationComponent implements OnInit {
     };
 
     selectedCategoryControl: FormControl = new FormControl();
-    alphabet: string = String();
+    alphabet: Alphabet | NumericSystem = new Alphabet();
 
     constructor(private fb: FormBuilder, private uidService: UidService, private curveService: CurveService) {
         this.curveForm = this.fb.group({
@@ -78,6 +80,9 @@ export class SimulationComponent implements OnInit {
         });
         this.secretsForm.get('num_parties')?.valueChanges.subscribe((numParties: number) => {
             this.updatePartyDetails(numParties);
+        });
+        this.selectedCategoryControl.valueChanges.subscribe((category: string) => {
+            this.alphabetRef.nativeElement.value = String();
         });
     }
 
@@ -146,13 +151,14 @@ export class SimulationComponent implements OnInit {
                 data: {
                     datasets: [
                         {
+                            label: "ECC Points",
                             data: this.points,
                             backgroundColor: "rgba(0, 0, 255, 1)",
-                            order: 2,
+                            order: 99,
                         },
                     ],
                 },
-                options: chartOptions(-1, x_max, -1, y_max),
+                options: chartOptions(-1, x_max, -1, y_max, {}, true),
             });
         }
         this.loading_points = false;
@@ -160,24 +166,29 @@ export class SimulationComponent implements OnInit {
     }
 
     async onSubmitBase() {
+        // Reset secrets form and remove all public keys and shared key from chart
+        this.secretsForm.reset();
+        if (this.p_chart)
+            for (let i = this.p_chart.data.datasets.length - 1; i > 0; i--)
+                this.p_chart.data.datasets.pop();
+
         if (this.baseForm.valid) {
             const formValue = this.baseForm.value;
             await this.curveService.setBase(this.uid, formValue.base).subscribe((res: HttpResponse<any>) => {
                 console.log(res.body);
                 this.p_chart.data.datasets[1] = {
+                    label: "Base Point",
                     data: [formValue.base],
                     backgroundColor: "rgba(255, 0, 0, 1)",
                     radius: 7,
-                    order: 1,
+                    order: 97,
                 };
                 this.p_chart.update();
             });
-            this.secretsForm.reset();
             this.secretsForm.enable();
             this.secretsForm.get('shared')?.disable();
         }
         else {
-            this.secretsForm.reset();
             this.secretsForm.disable();
         }
     }
@@ -190,6 +201,7 @@ export class SimulationComponent implements OnInit {
             partyDetailsArray.push(this.createPartyFormGroup());
             partyDetailsArray.at(i).get('public_key')?.valueChanges.subscribe(async () => {
                 await this.getSharedKey(partyDetailsArray);
+                this.updateKeysChart(numParties, partyDetailsArray);
             });
             partyDetailsArray.at(i).get('private_key')?.valueChanges.subscribe(async (privateKey: number) => {
                 await this.getPublicKey(i, privateKey, partyDetailsArray);
@@ -205,6 +217,26 @@ export class SimulationComponent implements OnInit {
                     console.log(res.body.message);
                     let publicKey = JSON.parse(res.body.public_key);
                     partyDetailsArray.at(i).get('public_key')?.setValue(`(${publicKey.x}, ${publicKey.y})`);
+                    let steps: Point[] = [];
+                    res.body.steps.forEach((step: string) => {
+                        steps.push(new Point(JSON.parse(step).x, JSON.parse(step).y));
+                    });
+                    // Search dataset with label "Steps" and remove it
+                    this.p_chart.data.datasets = this.p_chart.data.datasets.filter((dataset: any) => dataset.label !== `Steps for Party ${i + 1}`);
+                    this.p_chart.update();
+
+                    this.p_chart.data.datasets.push({
+                        type: "line",
+                        label: `Steps for Party ${i + 1}`,
+                        data: steps,
+                        backgroundColor: "rgba(255, 240, 0, 1)",
+                        borderColor: "rgba(255, 240, 0, 0.5)",
+                        radius: 5,
+                        order: 98,
+                        animation: false,
+                        fill: false,
+                    });
+                    this.p_chart.update();
                 }
                 else if (res.status === 204) {
                     console.log("Invalid private key");
@@ -253,6 +285,43 @@ export class SimulationComponent implements OnInit {
         return Promise.resolve();
     }
 
+    updateKeysChart(numParties: number, partyDetailsArray: FormArray): void {
+        // Search dataset with label "Public Keys" and remove all datasets after it
+        this.p_chart.data.datasets = this.p_chart.data.datasets.filter((dataset: any) => dataset.label !== "Public Keys" && dataset.label !== "Shared Key");
+        this.p_chart.update();
+
+        let display_values: Point[] = [];
+        for (let i = 0; i < numParties; i++) {
+            let publicKey = partyDetailsArray.at(i).getRawValue().public_key;
+            if (publicKey === '(O)') continue;
+            display_values.push(Point.fromString(publicKey));
+        }
+
+        this.p_chart.data.datasets.push({
+            label: "Public Keys",
+            data: display_values,
+            backgroundColor: "rgba(78, 232, 223, 1)",
+            radius: 7,
+            order: 2,
+            animation: false,
+        });
+
+        let sharedKey = this.secretsForm.getRawValue().shared;
+        if (sharedKey && sharedKey !== '(O)') {
+            let sharedKey = Point.fromString(this.secretsForm.getRawValue().shared);
+            this.p_chart.data.datasets.push({
+                label: "Shared Key",
+                data: [sharedKey],
+                backgroundColor: "rgba(78, 232, 25, 1)",
+                radius: 7,
+                order: 1,
+                animation: false,
+            });
+        }
+
+        this.p_chart.update();
+    }
+
     createPartyFormGroup(): FormGroup {
         return this.fb.group({
             private_key: ['', [Validators.required, Validators.min(1)]],
@@ -264,12 +333,16 @@ export class SimulationComponent implements OnInit {
         return this.secretsForm.get('partyDetails') as FormArray;
     }
 
-    onCategoryChange(category: string) {
-        this.selectedCategoryControl.setValue(category);
+    setAlphabet(key: string) {
+        if (this.selectedCategoryControl.value === "numeric")
+            this.alphabet = new NumericSystem(key);
+        if (this.selectedCategoryControl.value === "alphabet")
+            this.alphabet = new Alphabet(key);
+        this.alphabetRef.nativeElement.value = this.alphabet.toString();
     }
 
-    setAlphabet(key: string) {
-        this.alphabet = key;
-
+    setOption(key: string) {
+        this.options[key] = !this.options[key];
+        this.alphabetRef.nativeElement.value = this.alphabet.toString();
     }
 }

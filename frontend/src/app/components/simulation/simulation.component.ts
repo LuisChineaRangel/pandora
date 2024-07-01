@@ -10,6 +10,14 @@ import { chartOptions, calculateConfig, displayCurve, dsConfig } from '@app/core
 import { primeValidator } from '@app/core/utils/validators';
 import { languages, options, string_format, special, Alphabet, NumericSystem } from '@app/core/utils/alphabet';
 
+
+export interface EncryptionTable {
+    character: string;
+    encoded: string;
+    encrypted?: string;
+    receiver?: string[];
+}
+
 @Component({
     selector: 'app-simulation',
     standalone: true,
@@ -49,6 +57,8 @@ export class SimulationComponent implements OnInit {
         'Curve448': { a: 1, b: 2 },
         'Curve25519': { a: 5, b: 7 },
     };
+
+    encryptionResults: EncryptionTable[] = [];
 
     constructor(private fb: FormBuilder, private uidService: UidService, private curveService: CurveService) {
         this.curveForm = this.fb.group({
@@ -119,6 +129,12 @@ export class SimulationComponent implements OnInit {
             if (!this.selected_sender)
                 this.sendForm.get('receivers')?.reset();
         });
+        this.sendForm.get('message')?.valueChanges.subscribe(() => {
+            this.getEncodeResults();
+        });
+        this.sendForm.valueChanges.subscribe(() => {
+            this.getEncryptionResults();
+        });
     }
 
     loadCurveData(curve: string) {
@@ -148,6 +164,14 @@ export class SimulationComponent implements OnInit {
             this.baseForm.disable();
             this.secretsForm.reset();
             this.secretsForm.disable();
+            this.sendForm.reset();
+            this.sendForm.get('sender')?.disable();
+            this.sendForm.get('receivers')?.disable();
+            this.receiveForm.reset();
+            this.receiveForm.get('sender')?.disable();
+            this.receiveForm.get('receivers')?.disable();
+            this.receiveForm.get('encrypted')?.disable();
+            this.receiveForm.get('decryption_key')?.disable();
         }
     }
 
@@ -224,7 +248,16 @@ export class SimulationComponent implements OnInit {
             this.secretsForm.get('shared')?.disable();
         }
         else {
+            this.secretsForm.reset();
             this.secretsForm.disable();
+            this.sendForm.reset();
+            this.sendForm.get('sender')?.disable();
+            this.sendForm.get('receivers')?.disable();
+            this.receiveForm.reset();
+            this.receiveForm.get('sender')?.disable();
+            this.receiveForm.get('receivers')?.disable();
+            this.receiveForm.get('encrypted')?.disable();
+            this.receiveForm.get('decryption_key')?.disable();
         }
     }
 
@@ -380,7 +413,50 @@ export class SimulationComponent implements OnInit {
     }
 
     setOption(key: string) {
-        this.options[key] = !this.options[key];
+        for (let option in this.options)
+            this.options[option] = false;
+        this.options[key] = true;
         this.alphabetRef.nativeElement.value = this.alphabet.toString();
+    }
+
+    async getEncodeResults() {
+        this.encryptionResults = [];
+        if (this.sendForm.get('message')?.valid) {
+            let message = this.sendForm.getRawValue().message;
+            await this.curveService.encode(this.uid, message, this.alphabet.toString()).subscribe((res: HttpResponse<any>) => {
+                if (res.status === 200) {
+                    console.log(res.body.message);
+                    let encoded = res.body.encoded;
+                    for (let i = 0; i < encoded.length; i++) {
+                        let parsed = JSON.parse(encoded[i]);
+                        this.encryptionResults.push({
+                            character: message[i],
+                            encoded: new Point(parsed.x, parsed.y).toString(),
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    async getEncryptionResults() {
+        this.encryptionResults = [];
+        if (this.sendForm.get('sender')?.valid && this.sendForm.get('receivers')?.valid && this.sendForm.get('message')?.valid) {
+            let sender = this.sendForm.getRawValue().sender;
+            let receivers = this.sendForm.getRawValue().receivers.split(',').map((receiver: string) => receiver.trim());
+            let message = this.sendForm.getRawValue().message;
+            let encoded = [];
+            await this.curveService.encode(this.uid, message, this.alphabet.toString()).subscribe((res: HttpResponse<any>) => {
+                if (res.status === 200) {
+                    console.log(res.body.message);
+                    encoded = res.body.encoded;
+                }
+            });
+            receivers.forEach((receiver: string) => {
+
+
+            });
+            console.log(sender, receivers, message);
+        }
     }
 }

@@ -226,6 +226,7 @@
                         </mat-form-field>
                     </div>
                     <div>
+                        <label>Remember to setup alphabet first!</label>
                         <mat-form-field appearance="outline">
                             <mat-label>Introduce message</mat-label>
                             <textarea formControlName="message" matInput rows="8"></textarea>
@@ -240,6 +241,26 @@
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
+                    <table mat-table [dataSource]="encryptionResults">
+                        <ng-container matColumnDef="character">
+                            <th mat-header-cell *matHeaderCellDef> Character </th>
+                            <td mat-cell *matCellDef="let element"> {{ element.character }} </td>
+                        </ng-container>
+                        <ng-container matColumnDef="encoded">
+                            <th mat-header-cell *matHeaderCellDef> Encoded </th>
+                            <td mat-cell *matCellDef="let element"> {{ element.encoded }} </td>
+                        </ng-container>
+                        <ng-container matColumnDef="encrypted">
+                            <th mat-header-cell *matHeaderCellDef> Encrypted </th>
+                            <td mat-cell *matCellDef="let element"> {{ element.encrypted }} </td>
+                        </ng-container>
+                        <ng-container matColumnDef="receiver">
+                            <th mat-header-cell *matHeaderCellDef> Receiver </th>
+                            <td mat-cell *matCellDef="let element"> {{ element.receiver }} </td>
+                        </ng-container>
+                        <tr mat-header-row *matHeaderRowDef="['character', 'encoded', 'encrypted', 'receiver'];"></tr>
+                        <tr mat-row *matRowDef="let row; columns: ['character', 'encoded', 'encrypted', 'receiver'];"></tr>
+                    </table>
                 </mat-card-content>
             </mat-card>
         </form>

@@ -29,4 +29,12 @@ export class CurveService {
     getSharedKey(uid: string, i : number, privateKey: number, sharedKey: string): Observable<HttpResponse<any>> {
         return this.http.post<any>(`${this.curveURL}/api/curve/shared`, { uid, i, privateKey, sharedKey }, { observe: 'response' });
     }
+
+    encode(uid: string, message: string, alphabet: string): Observable<HttpResponse<any>> {
+        return this.http.post<any>(`${this.curveURL}/api/curve/encode`, { uid, message, alphabet }, { observe: 'response' });
+    }
+
+    encrypt(uid: string, message: string, privateKey: number, publicKey: Point): Observable<HttpResponse<any>> {
+        return this.http.post<any>(`${this.curveURL}/api/curve/encrypt`, { uid, message, privateKey, publicKey }, { observe: 'response' });
+    }
 }

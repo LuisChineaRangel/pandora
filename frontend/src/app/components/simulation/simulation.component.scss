@@ -33,7 +33,8 @@ mat-card>mat-card-content mat-card {
 }
 
 .charts-container,
-#alphabet-textarea {
+#alphabet-textarea,
+#encrypted-message {
     flex: 1 0 55% !important;
     max-width: 55% !important;
     justify-content: space-between;
@@ -94,4 +95,19 @@ mat-card>mat-card-content mat-card {
     margin: 1rem 0;
     display: flex;
     flex-direction: column;
+}
+
+#send-form mat-card-content {
+    display: flex;
+    flex-direction: column;
+}
+
+#send-form mat-card-content {
+    flex-grow: 1;
+}
+
+#send-form mat-card-content > * > * {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }

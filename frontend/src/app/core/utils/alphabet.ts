@@ -20,8 +20,8 @@ export const languages : { [key: string]: string } = {
 }
 
 export const options = {
-    "case-insensitive": false,
     "alphanumeric": false,
+    "lowercase": false,
     "uppercase": false,
     "lower-upper": false,
 }
@@ -90,6 +90,8 @@ export class Alphabet extends BasicAlphabet {
      */
     get characters() {
         let characters: Array<string> = Array.from(this._characters);
+        if (this.options["lowercase"])
+            characters = Array.from(new Set(characters.map(c => c.toLowerCase())));
         if (this.options["uppercase"])
             characters = Array.from(new Set(characters.map(c => c.toUpperCase())));
         if (this.options["lower-upper"])
@@ -148,7 +150,6 @@ export class NumericSystem extends BasicAlphabet {
             this._base = NumericSystem.string_format[base];
         else
             this._base = base;
-        console.log(this.toString());
     }
 
     /**

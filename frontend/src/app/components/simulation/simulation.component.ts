@@ -441,11 +441,16 @@ export class SimulationComponent implements OnInit {
 
     async getEncryptionResults() {
         this.encryptionResults = [];
-        if (this.sendForm.get('sender')?.valid && this.sendForm.get('receivers')?.valid && this.sendForm.get('message')?.valid) {
+        let public_keys = [];
+        for (let i = 0; i < this.partyDetails.length; i++)
+            public_keys.push(Point.fromString(this.partyDetails.at(i).getRawValue().public_key));
+
+        if (this.sendForm.get('sender')?.valid && this.sendForm.get('receivers')?.valid && this.sendForm.get('message')?.valid && public_keys.length === this.partyDetails.length) {
             let sender = this.sendForm.getRawValue().sender;
             let receivers = this.sendForm.getRawValue().receivers.split(',').map((receiver: string) => receiver.trim());
             let message = this.sendForm.getRawValue().message;
             let encoded = [];
+
             await this.curveService.encode(this.uid, message, this.alphabet.toString()).subscribe((res: HttpResponse<any>) => {
                 if (res.status === 200) {
                     console.log(res.body.message);

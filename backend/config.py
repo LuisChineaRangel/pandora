@@ -7,6 +7,7 @@ load_dotenv(os.path.join(basedir, '.env'))
 class Config:
     """Base configuration."""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
+    PORT = int(os.environ.get('PORT', 5000))
     DEBUG = False
     TESTING = False
 

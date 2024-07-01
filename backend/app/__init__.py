@@ -3,7 +3,7 @@ from flask import Flask
 from flask_cors import CORS
 from config import config
 
-allowed_origin = os.getenv('ALLOWED_ORIGIN', 'http://localhost:3000')
+allowed_origin = os.getenv('ALLOWED_ORIGIN', '*')
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": allowed_origin}})

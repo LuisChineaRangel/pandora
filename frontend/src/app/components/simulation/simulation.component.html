@@ -269,15 +269,6 @@
             </mat-card>
         </form>
         <form [formGroup]="receiveForm" id="receive-form">
-            <mat-card>
-                <mat-card-header>
-                    <mat-card-title>
-                        <h2>Decrypted message</h2>
-                    </mat-card-title>
-                </mat-card-header>
-                <mat-card-content>
-                </mat-card-content>
-            </mat-card>
             <mat-card id="decryption-form">
                 <mat-card-header>
                     <mat-card-title>
@@ -319,6 +310,15 @@
                             <textarea formControlName="encrypted" matInput rows="8"></textarea>
                         </mat-form-field>
                     </div>
+                </mat-card-content>
+            </mat-card>
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>
+                        <h3>Decrypted message</h3>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
                 </mat-card-content>
             </mat-card>
         </form>

@@ -9,7 +9,7 @@ import { CurveService } from '@services/curve.service';
 import { chartOptions, calculateConfig, displayCurve, dsConfig } from '@app/core/utils/chart';
 import { primeValidator } from '@app/core/utils/validators';
 import { languages, options, string_format, special, Alphabet, NumericSystem } from '@app/core/utils/alphabet';
-import { findIndex, firstValueFrom } from 'rxjs';
+import { findIndex, firstValueFrom, share } from 'rxjs';
 
 
 export interface EncryptionTable {
@@ -328,7 +328,7 @@ export class SimulationComponent implements OnInit {
             let sharedKey = public_keys[0];
             for (let i = 1; i < partyDetailsArray.length; i++) {
                 const privateKey = partyDetailsArray.at(i).get('private_key')?.value;
-                await this.curveService.getSharedKey(this.uid, i, privateKey, sharedKey.toJSON()).subscribe((res: HttpResponse<any>) => {
+                await this.curveService.getSharedKey(this.uid, privateKey, sharedKey.toJSON()).subscribe((res: HttpResponse<any>) => {
                     if (res.status === 200) {
                         console.log(res.body.message);
                         sharedKey = new Point(res.body.shared_key.x, res.body.shared_key.y);
@@ -448,8 +448,6 @@ export class SimulationComponent implements OnInit {
         let sender = this.sendForm.get('sender')?.value;
         let receivers = this.sendForm.get('receivers')?.value;
 
-        let encrypted = [];
-        let shared_keys = [];
         let public_keys = [];
         for (let i = 0; i < this.partyDetails.length; i++)
             public_keys.push(Point.fromString(this.partyDetails.at(i).getRawValue().public_key));
@@ -459,35 +457,54 @@ export class SimulationComponent implements OnInit {
         if ((!sender && sender !== 0) || !receivers || !encoded || !common_key || public_keys.length !== this.partyDetails.controls.length) return;
 
         let break_flag = false;
+        let encrypted = [];
+        let sharedKey = Point.fromString(this.secretsForm.get('shared')?.value);
+
         for (let i = 0; i < receivers.length; i++) {
-            let public_keys_for_receiver = public_keys.filter((_: Point, index: number) => index !== i);
-            const party = this.fb.array(this.partyDetails.controls.filter((party: AbstractControl) => party.get('public_key')?.value === receivers[i]));
-            let sharedKey = public_keys_for_receiver[0];
-            for (let j = 0; j < party.length; j++) {
-                const privateKey = party.at(i).get('private_key')?.value;
-                await this.curveService.getSharedKey(this.uid, i, privateKey, sharedKey.toJSON()).subscribe((res: HttpResponse<any>) => {
+            const party = this.fb.array(this.partyDetails.controls.filter((_: AbstractControl, index: number) => index !== receivers[i]));
+            let decryption_key = Point.fromString(party.at(0).get('public_key')?.value);
+            for (let j = 1; j < party.length; j++) {
+                let privateKey = party.at(j).get('private_key')?.value;
+                try {
+                    const res: HttpResponse<any> = await firstValueFrom(this.curveService.getSharedKey(this.uid, privateKey, sharedKey.toJSON()));
+
                     if (res.status === 200) {
-                        sharedKey = new Point(res.body.shared_key.x, res.body.shared_key.y);
+                        console.log(res.body.message);
+                        decryption_key = new Point(res.body.shared_key.x, res.body.shared_key.y);
                     }
-                    else {
+                    else if (res.status === 204) {
                         break_flag = true;
+                        console.log("Invalid private key");
+                        this.sendForm.get('message')?.setErrors({ customError: "Invalid private key" });
                     }
-                });
-                if (break_flag) break;
+                }
+                catch (error: any) {
+                    if (error.status === 400 || error.status === 404) {
+                        const errorMessage = error.error || 'An error occurred';
+                        console.log(errorMessage);
+                        this.sendForm.get('message')?.setErrors({ customError: errorMessage });
+                    }
+                }
             }
-            // await this.curveService.encrypt(this.uid, sender, receivers[i], encoded, public_keys).subscribe((res: HttpResponse<any>) => {
-            //     if (res.status === 200) {
-            //         console.log(res.body.message);
-            //         let encrypted = res.body.encrypted;
-            //         encrypted.forEach((encrypted: string) => {
-            //             let parsed = JSON.parse(encrypted);
-            //             encrypted = new Point(parsed.x, parsed.y).toString();
-            //         });
-            //         this.encryptionResults.push({ character: message[i], encoded: encoded[i], encrypted: encrypted, receiver: [receivers[i]] });
-            //     }
-            // });
-        }
-            receivers.forEach((receiver: string) => {
-            });
+            if (break_flag) return;
+            try {
+                const res: HttpResponse<any> = await firstValueFrom(this.curveService.encrypt(this.uid, message, alphabet as string, sharedKey, decryption_key, true));
+                if (res.status === 200) {
+                    console.log(res.body.message);
+                    let encrypted = res.body.encrypted;
+                    encrypted.forEach((encrypted: string) => {
+                        let parsed = JSON.parse(encrypted);
+                        encrypted = new Point(parsed.x, parsed.y).toString();
+                    });
+                }
+            }
+            catch (error: any) {
+                if (error.status === 400 || error.status === 404) {
+                    const errorMessage = error.error || 'An error occurred';
+                    console.log(errorMessage);
+                    this.sendForm.get('message')?.setErrors({ customError: errorMessage });
+                }
+            }
         }
     }
+}

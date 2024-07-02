@@ -22,19 +22,21 @@ export class CurveService {
         return this.http.post<any>(`${this.curveURL}/api/curve/base`, { uid, x: base.x, y: base.y }, { observe: 'response' });
     }
 
-    getPublicKey(uid: string, i : number, privateKey: number): Observable<HttpResponse<any>> {
+    getPublicKey(uid: string, i: number, privateKey: number): Observable<HttpResponse<any>> {
         return this.http.post<any>(`${this.curveURL}/api/curve/public`, { uid, i, privateKey }, { observe: 'response' });
     }
 
-    getSharedKey(uid: string, i : number, privateKey: number, sharedKey: string): Observable<HttpResponse<any>> {
-        return this.http.post<any>(`${this.curveURL}/api/curve/shared`, { uid, i, privateKey, sharedKey }, { observe: 'response' });
+    getSharedKey(uid: string, privateKey: number, sharedKey: string): Observable<HttpResponse<any>> {
+        return this.http.post<any>(`${this.curveURL}/api/curve/shared`, { uid, privateKey, sharedKey }, { observe: 'response' });
     }
 
     encode(uid: string, message: string, alphabet: string): Observable<HttpResponse<any>> {
         return this.http.post<any>(`${this.curveURL}/api/curve/encode`, { uid, message, alphabet }, { observe: 'response' });
     }
 
-    encrypt(uid: string, message: string, privateKey: number, publicKey: Point): Observable<HttpResponse<any>> {
-        return this.http.post<any>(`${this.curveURL}/api/curve/encrypt`, { uid, message, privateKey, publicKey }, { observe: 'response' });
+    encrypt(uid: string, message: string, alphabet: string, encrypt: number | Point, decrypt: Point, multiple: boolean = false): Observable<HttpResponse<any>> {
+        if (multiple)
+            return this.http.post<any>(`${this.curveURL}/api/curve/encrypt`, { uid, message, alphabet, encrypt, decrypt }, { observe: 'response' });
+        return this.http.post<any>(`${this.curveURL}/api/curve/encrypt`, { uid, message, alphabet, privateKey: encrypt, publicKey: decrypt }, { observe: 'response' });
     }
 }

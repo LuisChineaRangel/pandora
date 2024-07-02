@@ -185,14 +185,24 @@ def encrypt():
             return jsonify("Missing key: alphabet or message"), 400
 
         alphabet, message = data["alphabet"], data["message"]
-        private_k = int(data["privateKey"])
-        public_k = Point(ecc[uid], data["publicKey"]["x"], data["publicKey"]["y"])
 
-        encrypted = ecc[uid].encrypt(alphabet, message, private_k, public_k)
+        # Multiple receivers case
+        if "encrypt" in data and "decrypt" in data:
+            encrypt_json = json.loads(data["encrypt"])
+            decrypt_json = json.loads(data["decrypt"])
+            encrypt = Point(ecc[uid], encrypt_json["x"], encrypt_json["y"])
+            decrypt = Point(ecc[uid], decrypt_json["x"], decrypt_json["y"])
+            encrypted = ecc[uid].encrypt(alphabet, message, encrypt, decrypt, True)
+        # Single receiver case
+        elif "publicKey" in data and "privateKey" in data:
+            private_k = int(data["privateKey"])
+            public_k = Point(ecc[uid], data["publicKey"]["x"], data["publicKey"]["y"])
+            encrypted = ecc[uid].encrypt(alphabet, message, private_k, public_k)
+        encrypted = [(point[0].to_json(), point[1].to_json()) for point in encrypted]
 
         response = {
             "message": "Message encrypted",
-            "encrypted": [point.to_json() for point in encrypted],
+            "encrypted": encrypted,
         }
         return jsonify(response), 200
     except Exception as e:

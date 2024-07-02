@@ -129,15 +129,27 @@ class Curve:
             decoded += alph[nearest // h]
         return decoded
 
-    def encrypt(self, alph: str, msg: str, private_k: int, public_k: "Point") -> list:
+    def encrypt(
+        self,
+        alph: str,
+        msg: str,
+        encryption,
+        decryption,
+        multiple: bool = False,
+    ) -> list:
         if not self.base:
             raise ValueError("Base point not set!")
-        if public_k == Point(self):
+        if decryption == Point(self) and type(decryption) == Point:
             raise ValueError("Public key of the other party not set!")
-        if private_k == 0:
+        if type(encryption) == int and encryption == 0:
             return [Point(self)] * len(msg)
+
+        # Encrypt the message for multiple receivers
+        if multiple:
+            return [(Qm + encryption, decryption) for Qm in self.encode(alph, msg)]
+        # Encrypt the message for a single receiver
         return [
-            (Qm + (public_k * private_k), self.base * private_k)
+            (Qm + (decryption * encryption), self.base * encryption)
             for Qm in self.encode(alph, msg)
         ]
 

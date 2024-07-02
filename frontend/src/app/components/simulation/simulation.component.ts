@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CoreModule, Point } from '@app/core/core.module';
-import { FormBuilder, FormControl, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
 import { HttpResponse } from '@angular/common/http';
 import Chart, { ChartConfiguration } from 'chart.js/auto';
 
@@ -9,6 +9,7 @@ import { CurveService } from '@services/curve.service';
 import { chartOptions, calculateConfig, displayCurve, dsConfig } from '@app/core/utils/chart';
 import { primeValidator } from '@app/core/utils/validators';
 import { languages, options, string_format, special, Alphabet, NumericSystem } from '@app/core/utils/alphabet';
+import { findIndex, firstValueFrom } from 'rxjs';
 
 
 export interface EncryptionTable {
@@ -39,7 +40,7 @@ export class SimulationComponent implements OnInit {
     languages: { [key: string]: string } = languages;
     numericSystems: { [key: string]: string | number } = { ...string_format, ...special };
     options: { [key: string]: boolean } = options;
-    alphabet: Alphabet | NumericSystem = new Alphabet();
+    alphabet: Alphabet | NumericSystem | undefined = undefined;
 
     @ViewChild('Curve', { static: true }) curveChartRef: ElementRef<HTMLCanvasElement> | any;
     @ViewChild('Points', { static: true }) pointsChartRef: ElementRef<HTMLCanvasElement> | any;
@@ -122,15 +123,13 @@ export class SimulationComponent implements OnInit {
         });
         this.selectedCategoryControl.valueChanges.subscribe(() => {
             this.alphabetRef.nativeElement.value = String();
+            this.alphabet = undefined;
         });
         this.sendForm.get('sender')?.valueChanges.subscribe(() => {
             this.selected_sender = !!this.sendForm.get('sender')?.valid;
             this.selected_sender ? this.sendForm.get('receivers')?.enable() : this.sendForm.get('receivers')?.disable();
             if (!this.selected_sender)
                 this.sendForm.get('receivers')?.reset();
-        });
-        this.sendForm.get('message')?.valueChanges.subscribe(() => {
-            this.getEncodeResults();
         });
         this.sendForm.valueChanges.subscribe(() => {
             this.getEncryptionResults();
@@ -409,59 +408,86 @@ export class SimulationComponent implements OnInit {
             this.alphabet = new NumericSystem(key);
         if (this.selectedCategoryControl.value === "alphabet")
             this.alphabet = new Alphabet(key);
-        this.alphabetRef.nativeElement.value = this.alphabet.toString();
+        if (this.alphabet)
+            this.alphabetRef.nativeElement.value = this.alphabet.toString();
     }
 
     setOption(key: string) {
         for (let option in this.options)
             this.options[option] = false;
         this.options[key] = true;
-        this.alphabetRef.nativeElement.value = this.alphabet.toString();
-    }
-
-    async getEncodeResults() {
-        this.encryptionResults = [];
-        if (this.sendForm.get('message')?.valid) {
-            let message = this.sendForm.getRawValue().message;
-            await this.curveService.encode(this.uid, message, this.alphabet.toString()).subscribe((res: HttpResponse<any>) => {
-                if (res.status === 200) {
-                    console.log(res.body.message);
-                    let encoded = res.body.encoded;
-                    for (let i = 0; i < encoded.length; i++) {
-                        let parsed = JSON.parse(encoded[i]);
-                        this.encryptionResults.push({
-                            character: message[i],
-                            encoded: new Point(parsed.x, parsed.y).toString(),
-                        });
-                    }
-                }
-            });
-        }
+        if (this.alphabet)
+            this.alphabetRef.nativeElement.value = this.alphabet.toString();
     }
 
     async getEncryptionResults() {
         this.encryptionResults = [];
+        let message = this.sendForm.getRawValue().message;
+        let encoded;
+
+        let alphabet = this.alphabet?.toString();
+
+        if (!this.sendForm.get('message')?.valid || message === "") return;
+        try {
+            const res: HttpResponse<any> = await firstValueFrom(this.curveService.encode(this.uid, message, alphabet as string));
+            if (res.status === 200) {
+                console.log(res.body.message);
+                encoded = res.body.encoded;
+                encoded.forEach((encoded: string) => {
+                    let parsed = JSON.parse(encoded);
+                    encoded = new Point(parsed.x, parsed.y).toString();
+                });
+            }
+        } catch (error: any) {
+            if (error.status === 400 || error.status === 404) {
+                const errorMessage = error.error || 'An error occurred';
+                this.sendForm.get('message')?.setErrors({ customError: errorMessage });
+                console.log(errorMessage);
+            }
+        }
+        let sender = this.sendForm.get('sender')?.value;
+        let receivers = this.sendForm.get('receivers')?.value;
+
+        let encrypted = [];
+        let shared_keys = [];
         let public_keys = [];
         for (let i = 0; i < this.partyDetails.length; i++)
             public_keys.push(Point.fromString(this.partyDetails.at(i).getRawValue().public_key));
 
-        if (this.sendForm.get('sender')?.valid && this.sendForm.get('receivers')?.valid && this.sendForm.get('message')?.valid && public_keys.length === this.partyDetails.length) {
-            let sender = this.sendForm.getRawValue().sender;
-            let receivers = this.sendForm.getRawValue().receivers.split(',').map((receiver: string) => receiver.trim());
-            let message = this.sendForm.getRawValue().message;
-            let encoded = [];
+        const common_key = this.secretsForm.get('shared')?.value;
 
-            await this.curveService.encode(this.uid, message, this.alphabet.toString()).subscribe((res: HttpResponse<any>) => {
-                if (res.status === 200) {
-                    console.log(res.body.message);
-                    encoded = res.body.encoded;
-                }
-            });
+        if ((!sender && sender !== 0) || !receivers || !encoded || !common_key || public_keys.length !== this.partyDetails.controls.length) return;
+
+        let break_flag = false;
+        for (let i = 0; i < receivers.length; i++) {
+            let public_keys_for_receiver = public_keys.filter((_: Point, index: number) => index !== i);
+            const party = this.fb.array(this.partyDetails.controls.filter((party: AbstractControl) => party.get('public_key')?.value === receivers[i]));
+            let sharedKey = public_keys_for_receiver[0];
+            for (let j = 0; j < party.length; j++) {
+                const privateKey = party.at(i).get('private_key')?.value;
+                await this.curveService.getSharedKey(this.uid, i, privateKey, sharedKey.toJSON()).subscribe((res: HttpResponse<any>) => {
+                    if (res.status === 200) {
+                        sharedKey = new Point(res.body.shared_key.x, res.body.shared_key.y);
+                    }
+                    else {
+                        break_flag = true;
+                    }
+                });
+                if (break_flag) break;
+            }
+            // await this.curveService.encrypt(this.uid, sender, receivers[i], encoded, public_keys).subscribe((res: HttpResponse<any>) => {
+            //     if (res.status === 200) {
+            //         console.log(res.body.message);
+            //         let encrypted = res.body.encrypted;
+            //         encrypted.forEach((encrypted: string) => {
+            //             let parsed = JSON.parse(encrypted);
+            //             encrypted = new Point(parsed.x, parsed.y).toString();
+            //         });
+            //         this.encryptionResults.push({ character: message[i], encoded: encoded[i], encrypted: encrypted, receiver: [receivers[i]] });
+            //     }
+            // });
+        }
             receivers.forEach((receiver: string) => {
-
-
             });
-            console.log(sender, receivers, message);
         }
     }
-}

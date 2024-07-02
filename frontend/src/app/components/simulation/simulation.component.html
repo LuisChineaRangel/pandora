@@ -230,6 +230,9 @@
                         <mat-form-field appearance="outline">
                             <mat-label>Introduce message</mat-label>
                             <textarea formControlName="message" matInput rows="8"></textarea>
+                            <mat-error *ngIf="sendForm.get('message')?.hasError('customError')">
+                                {{sendForm.controls['message'].getError('customError')}}
+                            </mat-error>
                         </mat-form-field>
                     </div>
                 </mat-card-content>
@@ -237,7 +240,7 @@
             <mat-card id="encrypted-message">
                 <mat-card-header>
                     <mat-card-title>
-                        <h3>Encrypted Message</h3>
+                        <h3>Encrypted message</h3>
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
@@ -259,13 +262,23 @@
                             <td mat-cell *matCellDef="let element"> {{ element.receiver }} </td>
                         </ng-container>
                         <tr mat-header-row *matHeaderRowDef="['character', 'encoded', 'encrypted', 'receiver'];"></tr>
-                        <tr mat-row *matRowDef="let row; columns: ['character', 'encoded', 'encrypted', 'receiver'];"></tr>
+                        <tr mat-row *matRowDef="let row; columns: ['character', 'encoded', 'encrypted', 'receiver'];">
+                        </tr>
                     </table>
                 </mat-card-content>
             </mat-card>
         </form>
-        <form [formGroup]="receiveForm">
+        <form [formGroup]="receiveForm" id="receive-form">
             <mat-card>
+                <mat-card-header>
+                    <mat-card-title>
+                        <h2>Decrypted message</h2>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                </mat-card-content>
+            </mat-card>
+            <mat-card id="decryption-form">
                 <mat-card-header>
                     <mat-card-title>
                         <h2>Receiving messages</h2>

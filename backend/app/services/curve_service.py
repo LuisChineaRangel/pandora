@@ -141,7 +141,7 @@ class Curve:
             raise ValueError("Base point not set!")
         if decryption == Point(self) and type(decryption) == Point:
             raise ValueError("Public key of the other party not set!")
-        if type(encryption) == int and encryption == 0:
+        if isinstance(encryption, int) and encryption == 0:
             return [Point(self)] * len(msg)
 
         # Encrypt the message for multiple receivers

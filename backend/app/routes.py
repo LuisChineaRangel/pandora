@@ -198,6 +198,7 @@ def encrypt():
             private_k = int(data["privateKey"])
             public_k = Point(ecc[uid], data["publicKey"]["x"], data["publicKey"]["y"])
             encrypted = ecc[uid].encrypt(alphabet, message, private_k, public_k)
+
         encrypted = [(point[0].to_json(), point[1].to_json()) for point in encrypted]
 
         response = {

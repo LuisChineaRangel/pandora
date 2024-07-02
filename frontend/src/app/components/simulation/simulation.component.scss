@@ -114,3 +114,18 @@ mat-card>mat-card-content mat-card {
     flex-direction: column;
     justify-content: space-between;
 }
+
+table {
+    width: 100%;
+}
+
+.mat-mdc-header-cell,
+.mat-mdc-cell {
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+#decryption_keys {
+    margin-top: 2rem;
+    padding: 0 25%;
+}

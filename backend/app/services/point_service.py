@@ -102,4 +102,6 @@ class Point:
         return f"({self.x}, {self.y})"
 
     def to_json(self) -> str:
+        if self.at_infinity():
+            return json.dumps({"x": -1, "y": -1}, indent=4)
         return json.dumps({"x": self.x, "y": self.y}, indent=4)

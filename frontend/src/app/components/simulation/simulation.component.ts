@@ -471,7 +471,6 @@ export class SimulationComponent implements OnInit {
 
         let not_encrypt_flag = false;
         if ((!sender && sender !== 0) || !receivers || !encoded || !common_key || public_keys.length !== this.partyDetails.controls.length) not_encrypt_flag = true;
-        console.log(not_encrypt_flag)
 
         let decryption_keys = [];
         let break_flag = false;
@@ -481,7 +480,7 @@ export class SimulationComponent implements OnInit {
         if (!not_encrypt_flag) {
             for (let i = 0; i < receivers.length; i++) {
                 const party = this.fb.array(this.partyDetails.controls.filter((_: AbstractControl, index: number) => index !== receivers[i]));
-                let decryption_key = Point.fromString(party.at(0).get('public_key')?.value);
+                let decryption_key = await Point.fromString(party.at(0).get('public_key')?.value);
                 decryption_keys.push({ key: decryption_key, party: receivers[i] });
                 for (let j = 1; j < party.length; j++) {
                     let privateKey = party.at(j).get('private_key')?.value;
@@ -508,9 +507,10 @@ export class SimulationComponent implements OnInit {
                 }
                 if (break_flag) return;
                 try {
-                    const res: HttpResponse<any> = await firstValueFrom(this.curveService.encrypt(this.uid, message, alphabet as string, sharedKey, decryption_key, true));
+                    const res: HttpResponse<any> = await firstValueFrom(this.curveService.encrypt(this.uid, message, alphabet as string, sharedKey, decryption_keys[i].key, true));
                     if (res.status === 200) {
                         console.log(res.body.message);
+                        console.log(res.body.encrypted);
                         let results = res.body.encrypted;
                         results.forEach((encrypted_p: string[]) => {
                             let parsed = JSON.parse(encrypted_p[0]);

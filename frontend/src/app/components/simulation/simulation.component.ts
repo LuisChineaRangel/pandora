@@ -86,15 +86,12 @@ export class SimulationComponent implements OnInit {
         this.sendForm.get('sender')?.disable();
         this.sendForm.get('receivers')?.disable();
         this.receiveForm = this.fb.group({
-            sender: ['', [Validators.required]],
-            receivers: ['', [Validators.required]],
             encrypted: ['', [Validators.required]],
+            private_key: ['', [Validators.required, Validators.min(1)]],
             decryption_key: ['', [Validators.required]],
+            decrypted: [''],
         });
-        this.receiveForm.get('sender')?.disable();
-        this.receiveForm.get('receivers')?.disable();
-        this.receiveForm.get('encrypted')?.disable();
-        this.receiveForm.get('decryption_key')?.disable();
+        this.receiveForm.disable();
     }
 
     async ngOnInit() {
@@ -114,8 +111,6 @@ export class SimulationComponent implements OnInit {
             this.onSubmitBase();
         });
         this.secretsForm.get('num_parties')?.valueChanges.subscribe(async (numParties: number) => {
-            this.secretsForm.get('partyDetails')?.reset();
-            this.secretsForm.get('shared')?.reset();
             await this.updatePartyDetails(numParties);
             if (this.p_chart) {
                 this.p_chart.data.datasets = this.p_chart.data.datasets.filter((dataset: any) => dataset.label === "ECC Points" || dataset.label === "Base Point");
@@ -134,6 +129,15 @@ export class SimulationComponent implements OnInit {
         });
         this.sendForm.valueChanges.subscribe(() => {
             this.getEncryptionResults();
+        });
+        this.receiveForm.get('encrypted')?.valueChanges.subscribe(() => {
+            this.getDecryptionResults();
+        });
+        this.receiveForm.get('private_key')?.valueChanges.subscribe(() => {
+            this.getDecryptionResults();
+        });
+        this.receiveForm.get('decryption_key')?.valueChanges.subscribe(() => {
+            this.getDecryptionResults();
         });
     }
 
@@ -168,10 +172,7 @@ export class SimulationComponent implements OnInit {
             this.sendForm.get('sender')?.disable();
             this.sendForm.get('receivers')?.disable();
             this.receiveForm.reset();
-            this.receiveForm.get('sender')?.disable();
-            this.receiveForm.get('receivers')?.disable();
-            this.receiveForm.get('encrypted')?.disable();
-            this.receiveForm.get('decryption_key')?.disable();
+            this.receiveForm.disable();
         }
     }
 
@@ -254,14 +255,18 @@ export class SimulationComponent implements OnInit {
             this.sendForm.get('sender')?.disable();
             this.sendForm.get('receivers')?.disable();
             this.receiveForm.reset();
-            this.receiveForm.get('sender')?.disable();
-            this.receiveForm.get('receivers')?.disable();
-            this.receiveForm.get('encrypted')?.disable();
-            this.receiveForm.get('decryption_key')?.disable();
+            this.receiveForm.disable();
         }
     }
 
     updatePartyDetails(numParties: number): void {
+        this.secretsForm.get('partyDetails')?.reset();
+        this.secretsForm.get('shared')?.reset();
+        this.sendForm.reset();
+        this.sendForm.get('sender')?.disable();
+        this.sendForm.get('receivers')?.disable();
+        this.encryptionResults = new MatTableDataSource<any>();
+
         const partyDetailsArray = this.secretsForm.get('partyDetails') as FormArray;
         while (partyDetailsArray.length !== 0)
             partyDetailsArray.removeAt(0);
@@ -360,6 +365,8 @@ export class SimulationComponent implements OnInit {
             if (!break_flag) {
                 this.secretsForm.get('shared')?.setValue(sharedKey.toString());
                 this.sendForm.get('sender')?.enable();
+                this.sendForm.get('receiver')?.disable();
+                this.receiveForm.enable();
             }
         }
         return Promise.resolve();
@@ -442,7 +449,7 @@ export class SimulationComponent implements OnInit {
 
         let alphabet = this.alphabet?.toString();
 
-        if (!this.sendForm.get('message')?.valid || message === "") return;
+        if (!this.sendForm.get('message')?.valid || message === "" || !message) return;
         try {
             const res: HttpResponse<any> = await firstValueFrom(this.curveService.encode(this.uid, message, alphabet as string));
             if (res.status === 200) {
@@ -475,61 +482,35 @@ export class SimulationComponent implements OnInit {
         let decryption_keys = [];
         let break_flag = false;
         let encrypted: string[] = [];
-        let sharedKey = Point.fromString(this.secretsForm.get('shared')?.value);
 
-        if (!not_encrypt_flag) {
-            for (let i = 0; i < receivers.length; i++) {
-                const party = this.fb.array(this.partyDetails.controls.filter((_: AbstractControl, index: number) => index !== receivers[i]));
-                let decryption_key = await Point.fromString(party.at(0).get('public_key')?.value);
-                decryption_keys.push({ key: decryption_key, party: receivers[i] });
-                for (let j = 1; j < party.length; j++) {
-                    let privateKey = party.at(j).get('private_key')?.value;
-                    try {
-                        const res: HttpResponse<any> = await firstValueFrom(this.curveService.getSharedKey(this.uid, privateKey, sharedKey.toJSON()));
+        if (!this.secretsForm.get('shared')?.value)
+            not_encrypt_flag = true;
 
-                        if (res.status === 200) {
-                            console.log(res.body.message);
-                            decryption_key = new Point(res.body.shared_key.x, res.body.shared_key.y);
-                        }
-                        else if (res.status === 204) {
-                            break_flag = true;
-                            console.log("Invalid private key");
-                            this.sendForm.get('message')?.setErrors({ customError: "Invalid private key" });
-                        }
-                    }
-                    catch (error: any) {
-                        if (error.status === 400 || error.status === 404) {
-                            const errorMessage = error.error || 'An error occurred';
-                            console.log(errorMessage);
-                            this.sendForm.get('message')?.setErrors({ customError: errorMessage });
-                        }
-                    }
+        if (!not_encrypt_flag && !break_flag) {
+            let decryption_key = await Point.fromString(this.partyDetails.at(sender).get('public_key')?.value);
+            let encryption_key = this.partyDetails.at(receivers).get('private_key')?.value;
+            decryption_keys.push({ key: decryption_key, party: receivers });
+            try {
+                const res: HttpResponse<any> = await firstValueFrom(this.curveService.encrypt(this.uid, message, alphabet as string, encryption_key, decryption_key));
+                if (res.status === 200) {
+                    console.log(res.body.message);
+                    let results = res.body.encrypted;
+                    results.forEach((point: string) => {
+                        let parsed = JSON.parse(point);
+                        let encrypted_p = new Point(parsed.x, parsed.y).toString();
+                        encrypted.push(encrypted_p);
+                    });
                 }
-                if (break_flag) return;
-                try {
-                    const res: HttpResponse<any> = await firstValueFrom(this.curveService.encrypt(this.uid, message, alphabet as string, sharedKey, decryption_keys[i].key, true));
-                    if (res.status === 200) {
-                        console.log(res.body.message);
-                        console.log(res.body.encrypted);
-                        let results = res.body.encrypted;
-                        results.forEach((encrypted_p: string[]) => {
-                            let parsed = JSON.parse(encrypted_p[0]);
-                            encrypted_p[0] = new Point(parsed.x, parsed.y).toString();
-                            parsed = JSON.parse(encrypted_p[1]);
-                            encrypted_p[1] = new Point(parsed.x, parsed.y).toString();
-                            encrypted.push(encrypted_p[0]);
-                        });
-                    }
-                }
-                catch (error: any) {
-                    if (error.status === 400 || error.status === 404) {
-                        const errorMessage = error.error || 'An error occurred';
-                        console.log(errorMessage);
-                        this.sendForm.get('message')?.setErrors({ customError: errorMessage });
-                    }
+            }
+            catch (error: any) {
+                if (error.status === 400 || error.status === 404) {
+                    const errorMessage = error.error || 'An error occurred';
+                    console.log(errorMessage);
+                    this.sendForm.get('message')?.setErrors({ customError: errorMessage });
                 }
             }
         }
+
         for (let i = 0; i < encoded.length; i++) {
             data.push({
                 character: message[i],
@@ -539,5 +520,28 @@ export class SimulationComponent implements OnInit {
         }
         this.encryptionResults.data = data;
         this.decryption_keys = decryption_keys;
+    }
+
+    async getDecryptionResults() {
+        if (!this.receiveForm.valid) return;
+        let encrypted = this.receiveForm.get('encrypted')?.value;
+        let private_key = this.receiveForm.get('private_key')?.value;
+        let decryption_key = this.receiveForm.get('decryption_key')?.value;
+
+        if (!encrypted || !private_key || !decryption_key) return;
+
+        try {
+            const res: HttpResponse<any> = await firstValueFrom(this.curveService.decrypt(this.uid, encrypted, this.alphabet?.toString() as string, private_key, Point.fromString(decryption_key)));
+            if (res.status === 200) {
+                console.log(res.body.message);
+                this.receiveForm.get('decrypted')?.setValue(res.body.decrypted);
+            }
+        } catch (error: any) {
+            if (error.status === 400 || error.status === 404) {
+                const errorMessage = error.error || 'An error occurred';
+                this.receiveForm.get('encrypted')?.setErrors({ customError: errorMessage });
+                console.log(errorMessage);
+            }
+        }
     }
 }

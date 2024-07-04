@@ -1,8 +1,7 @@
 import json
 import math
 from typing import Any
-from sympy import mod_inverse
-from app.utils import simplify_fraction
+from app.utils import simplify_fraction, euclid_extended
 
 
 class Point:
@@ -30,14 +29,12 @@ class Point:
         self.a, self.field, self.x, self.y = params.a, params.field, x, y
 
     def __setattr__(self, __name: str, __value: Any) -> None:
-        if __name in ["a", "field", "x", "y"] and not isinstance(__value, int) and __value != math.inf:
-            raise ValueError(f'Invalid value! {__name} must be an integer.')
-        if __name in ["x", "y"] and __value < 0:
-            __value = math.inf
+        if __name in ["a", "field", "x", "y"] and not isinstance(__value, int):
+            raise ValueError(f"Invalid value! {__name} must be an integer.")
         super().__setattr__(__name, __value)
 
     def at_infinity(self) -> bool:
-        return (self.x, self.y) == (math.inf, math.inf)
+        return (self.x, self.y) == (-1, -1)
 
     def point_zero(self) -> bool:
         return (self.x, self.y) == (0, 0)
@@ -57,7 +54,7 @@ class Point:
 
         # Check if points are inverses of each other
         if self == -other:
-            return Point(self, math.inf, math.inf)
+            return Point(self, -1, -1)
 
         # Check if points are the same
         if self == other:
@@ -65,13 +62,12 @@ class Point:
         else:
             fraction = (other.y - self.y), (other.x - self.x)
 
-        num, den = simplify_fraction(fraction)
-
         # Handle case where simplified fraction is infinity
-        if simplify_fraction(fraction) == (math.inf, math.inf):
-            return Point(self, math.inf, math.inf)
+        if simplify_fraction(fraction) == (-1, -1):
+            return Point(self, -1, -1)
 
-        lamb = (num * mod_inverse(abs(den), self.field)) % self.field
+        num, den = simplify_fraction(fraction)
+        lamb = (num * euclid_extended(abs(den), self.field)[1]) % self.field
         x3 = (lamb**2 - self.x - other.x) % self.field
         y3 = (lamb * (self.x - x3) - self.y) % self.field
 
@@ -82,7 +78,7 @@ class Point:
 
     def __mul__(self, scalar: int) -> "Point":
         if scalar == 0 or self.at_infinity():
-            return Point(self, math.inf, math.inf)
+            return Point(self, -1, -1)
 
         result = Point(self)
         addend = Point(self, self.x, self.y)

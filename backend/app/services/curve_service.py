@@ -146,7 +146,7 @@ class Curve:
 
         # Encrypt the message for multiple receivers
         if multiple:
-            return [(Qm + encryption, decryption) for Qm in self.encode(alph, msg)]
+            return [Qm + encryption for Qm in self.encode(alph, msg)]
         # Encrypt the message for a single receiver
         return [
             (Qm + (decryption * encryption), self.base * encryption)
@@ -162,7 +162,7 @@ class Curve:
         if private_k == 0:
             return msg
         for encrypted in points:
-            decrypted = encrypted - public_k * private_k
+            decrypted = encrypted - (public_k * private_k)
             if decrypted is None:
                 return ""
             msg += self.decode(alph, [decrypted])

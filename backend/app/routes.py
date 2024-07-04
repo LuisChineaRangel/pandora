@@ -193,13 +193,14 @@ def encrypt():
             encrypt = Point(ecc[uid], encrypt_json["x"], encrypt_json["y"])
             decrypt = Point(ecc[uid], decrypt_json["x"], decrypt_json["y"])
             encrypted = ecc[uid].encrypt(alphabet, message, encrypt, decrypt, True)
+            encrypted = [point.to_json() for point in encrypted]
         # Single receiver case
         elif "publicKey" in data and "privateKey" in data:
             private_k = int(data["privateKey"])
-            public_k = Point(ecc[uid], data["publicKey"]["x"], data["publicKey"]["y"])
+            parsed = json.loads(data["publicKey"])
+            public_k = Point(ecc[uid], parsed["x"], parsed["y"])
             encrypted = ecc[uid].encrypt(alphabet, message, private_k, public_k)
-
-        encrypted = [(point[0].to_json(), point[1].to_json()) for point in encrypted]
+            encrypted = [point[0].to_json() for point in encrypted]
 
         response = {
             "message": "Message encrypted",
@@ -223,15 +224,18 @@ def decrypt():
         if "alphabet" not in data or "encrypted" not in data:
             return jsonify("Missing key: alphabet or encrypted"), 400
 
-        points_pattern = r"\((\d+),(\d+)\)"
-        alphabet, encrypted = data["alphabet"], data["encrypted"].replace(" ", "")
+        points_pattern = r"\(\s*(\d+)\s*,\s*(\d+)\s*\)"
+        alphabet, encrypted_points = data["alphabet"], [(int(x), int(y)) for x, y in re.findall(points_pattern, data["encrypted"])]
+        if not encrypted_points:
+            return jsonify("Invalid encrypted message. Format: [(x1, y1), (x2, y2), ...]"), 400
         encrypted = [
             Point(ecc[uid], int(x), int(y))
-            for x, y in re.findall(points_pattern, encrypted)
+            for x, y in encrypted_points
         ]
 
         private_k = int(data["privateKey"])
-        public_k = Point(ecc[uid], data["publicKey"]["x"], data["publicKey"]["y"])
+        public_k = json.loads(data["publicKey"])
+        public_k = Point(ecc[uid], int(public_k["x"]), int(public_k["y"]))
 
         decrypted = ecc[uid].decrypt(alphabet, encrypted, private_k, public_k)
 

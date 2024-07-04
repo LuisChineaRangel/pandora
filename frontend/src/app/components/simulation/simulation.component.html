@@ -216,7 +216,7 @@
                     <div>
                         <mat-form-field>
                             <mat-label>Receivers</mat-label>
-                            <mat-select formControlName="receivers" multiple>
+                            <mat-select formControlName="receivers">
                                 <ng-container *ngFor="let party of partyDetails.controls; let i = index">
                                     <mat-option *ngIf="i !== sendForm.get('sender')?.value" [value]="i">
                                         Party {{ i + 1 }}
@@ -267,7 +267,7 @@
                             <td mat-cell *matCellDef="let element"> {{ element.party + 1}} </td>
                         </ng-container>
                         <ng-container matColumnDef="key">
-                            <th mat-header-cell *matHeaderCellDef> Key </th>
+                            <th mat-header-cell *matHeaderCellDef> Decryption Key </th>
                             <td mat-cell *matCellDef="let element"> {{ element.key }} </td>
                         </ng-container>
                         <tr mat-header-row *matHeaderRowDef="['party', 'key'];"></tr>
@@ -286,47 +286,37 @@
                 <mat-card-content>
                     <div>
                         <mat-form-field>
-                            <mat-label>Sender</mat-label>
-                            <mat-select formControlName="sender">
-                                <mat-option *ngFor="let party of partyDetails.controls; let i = index" [value]="i">
-                                    Party {{ i + 1 }}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
-                    <div>
-                        <mat-form-field>
-                            <mat-label>Receivers</mat-label>
-                            <mat-select formControlName="receivers" multiple>
-                                <ng-container *ngFor="let party of partyDetails.controls; let i = index">
-                                    <mat-option *ngIf="i !== sendForm.get('sender')?.value" [value]="i">
-                                        Party {{ i + 1 }}
-                                    </mat-option>
-                                </ng-container>
-                            </mat-select>
+                            <mat-label>Private Key</mat-label>
+                            <input matInput formControlName="private_key" type="text" (keyup)="getDecryptionResults()">
                         </mat-form-field>
                     </div>
                     <div>
                         <mat-form-field>
                             <mat-label>Decryption Key</mat-label>
-                            <input matInput formControlName="decryption_key" type="text">
+                            <input matInput formControlName="decryption_key" type="text" (keyup)="getDecryptionResults()">
                         </mat-form-field>
                     </div>
                     <div>
                         <mat-form-field appearance="outline">
                             <mat-label>Introduce encrypted message</mat-label>
-                            <textarea formControlName="encrypted" matInput rows="8"></textarea>
+                            <textarea formControlName="encrypted" matInput rows="8" (keyup)="getDecryptionResults()"></textarea>
+                            <mat-error *ngIf="receiveForm.get('encrypted')?.hasError('customError')">
+                                {{receiveForm.controls['encrypted'].getError('customError')}}
+                            </mat-error>
                         </mat-form-field>
                     </div>
                 </mat-card-content>
             </mat-card>
-            <mat-card>
+            <mat-card id="decrypted-message">
                 <mat-card-header>
                     <mat-card-title>
                         <h3>Decrypted message</h3>
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
+                    <mat-form-field appearance="outline">
+                        <textarea formControlName="decrypted" matInput rows="15"></textarea>
+                    </mat-form-field>
                 </mat-card-content>
             </mat-card>
         </form>

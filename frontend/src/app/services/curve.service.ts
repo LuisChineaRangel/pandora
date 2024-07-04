@@ -39,4 +39,8 @@ export class CurveService {
             return this.http.post<any>(`${this.curveURL}/api/curve/encrypt`, { uid, message, alphabet, encrypt, decrypt }, { observe: 'response' });
         return this.http.post<any>(`${this.curveURL}/api/curve/encrypt`, { uid, message, alphabet, privateKey: encrypt, publicKey: decrypt }, { observe: 'response' });
     }
+
+    decrypt(uid: string, encrypted: string, alphabet: string, privateKey: number, publicKey: Point): Observable<HttpResponse<any>> {
+        return this.http.post<any>(`${this.curveURL}/api/curve/decrypt`, { uid, encrypted, alphabet, privateKey, publicKey }, { observe: 'response' });
+    }
 }

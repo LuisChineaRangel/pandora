@@ -56,13 +56,13 @@ mat-card>mat-card-content mat-card {
     height: 100%;
 }
 
-#alphabet-textarea {
+#alphabet-textarea, #decrypted-message {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-#alphabet-textarea>*>* {
+#alphabet-textarea>*>*, #decrypted-message>*>* {
     width: 100%;
 }
 
@@ -100,16 +100,16 @@ mat-card>mat-card-content mat-card {
     flex-direction: column;
 }
 
-#send-form mat-card-content {
+#send-form mat-card-content, #receive-form mat-card-content {
     display: flex;
     flex-direction: column;
 }
 
-#send-form mat-card-content {
+#send-form mat-card-content, #receive-form mat-card-content {
     flex-grow: 1;
 }
 
-#send-form mat-card-content>*>* {
+#send-form mat-card-content>*>*, #receive-form mat-card-content>*>* {
     display: flex;
     flex-direction: column;
     justify-content: space-between;

@@ -255,12 +255,13 @@ def benchmark():
         if "attackType" not in data:
             return jsonify("Missing key: attackType"), 400
 
-        numCurves = data["numCurves"]
+        num_curves = data["numCurves"]
+        restricted_num_curves = min(num_curves, 100)
         numTests = data["numTests"]
 
         curves = []
         algorithm = data["attackType"]
-        for i in range(numCurves):
+        for i in range(restricted_num_curves):
             params = data["params"][i]
             curve = Curve(int(params["a"]), int(params["b"]), int(params["field"]))
             base = json.loads(params["base"])

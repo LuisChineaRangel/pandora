@@ -15,7 +15,7 @@
                 <mat-card-content>
                     <mat-button-toggle-group aria-label="Attacks">
                         <mat-button-toggle *ngFor="let attack of attackTypes" [value]="attack"
-                            (click)="selectAttack(attack)">
+                            (click)="selectAttack(attack)" (keypress)="selectAttack(attack)">
                             {{attack}}
                         </mat-button-toggle>
                     </mat-button-toggle-group>

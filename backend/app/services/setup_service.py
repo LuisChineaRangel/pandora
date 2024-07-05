@@ -1,6 +1,5 @@
-import re
 import time
-import random
+import secrets
 import hashlib
 from tabulate import tabulate
 
@@ -53,7 +52,7 @@ class Setup:
             print(DELIMITER)
             time.sleep(0.1)
 
-        self.c1 = random.randint(2, self.ec.n - 1)
+        self.c1 = secrets.randbelow(self.ec.n - 2) + 2
         M1 = self.__public_key(self.c1)
 
         if display:
@@ -61,16 +60,16 @@ class Setup:
             print(DELIMITER)
             time.sleep(0.1)
 
-        v = random.randint(2, self.ec.n - 1)
+        v = secrets.randbelow(self.ec.n - 2) + 2
         V = self.__public_key(v)
         if display:
             print(f"Public key V generated", flush=True)
             print(DELIMITER)
             time.sleep(0.1)
 
-        a, b, h, e = [random.randint(1, self.ec.n - 1) for _ in range(4)]
-        j = random.randint(0, 1)
-        u = random.randint(0, 1)
+        a, b, h, e = [(secrets.randbelow(self.ec.n - 1) + 1) for _ in range(4)]
+        j = secrets.randbelow(2)
+        u = secrets.randbelow(2)
         if display:
             print(f"Generating random values", flush=True)
             time.sleep(0.1)

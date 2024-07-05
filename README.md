@@ -1,4 +1,4 @@
-![image](https://github.com/iluzioDev/pandora/assets/45295283/101a0246-d12b-4fc5-aa2f-0a091a96cffa)# Pandora
+# Pandora
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/752862b9-8a36-42ed-95a3-7e60e2677d33/deploy-status)](https://app.netlify.com/sites/pandora-ecc/deploys)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=iluzioDev_pandora&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=iluzioDev_pandora)

@@ -1,0 +1,49 @@
+mat-card>mat-card-content mat-card {
+    margin: 1rem;
+}
+
+mat-card-title mat-icon {
+    transform: scale(1.5);
+}
+
+mat-form-field {
+    margin-right: 2rem;
+}
+
+#predefined-curves {
+    margin: 1rem 0;
+}
+
+.curve {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+#results mat-card-header mat-card-title h2 {
+    display: flex;
+    align-items: center;
+}
+
+#results mat-card-header mat-card-title h2 mat-progress-spinner {
+    margin-left: 1rem;
+}
+
+#warning {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: row;
+}
+
+#warning * {
+    color: rgba(214, 147, 0, 1);
+}
+
+#warning mat-icon {
+    transform: scale(0.7);
+}
+
+#warning span {
+    font-size: 0.8rem;
+}

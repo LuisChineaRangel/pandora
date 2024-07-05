@@ -1,0 +1,150 @@
+<mat-card>
+    <mat-card-header>
+        <mat-card-title>
+            <h1>Attacks to ECC Curves</h1>
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <div>
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>
+                        <h2>Choose your attack! <mat-icon>bug_report</mat-icon></h2>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <mat-button-toggle-group aria-label="Attacks">
+                        <mat-button-toggle *ngFor="let attack of attackTypes" [value]="attack"
+                            (click)="selectAttack(attack)">
+                            {{attack}}
+                        </mat-button-toggle>
+                    </mat-button-toggle-group>
+                    <div id="warning" *ngIf="selectedAttack === 'Pollig-Hellman' || selectedAttack === 'Baby-Step Giant-Step'">
+                            <mat-icon>warning</mat-icon>
+                            <span>
+                                Warning: This attack is very slow and may take a long time to finish. It is
+                                recommended to use a small number for the finite field size and the number of curves to test.
+                            </span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+        <div *ngIf="selectedAttack">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>
+                        <h2>{{selectedAttack}}</h2>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div id="predefined-curves" class="mat-form-field-container">
+                        <label>Predefined Curves</label>
+                        <div>
+                            <ng-container *ngIf="curves_data">
+                                <button mat-button *ngFor="let curve of curves_data | keyvalue"
+                                    (click)="loadCurveData(curve.key)">{{curve.key}}</button>
+                            </ng-container>
+                        </div>
+                    </div>
+                    <form [formGroup]="attackForm">
+                        <mat-form-field>
+                            <mat-label>Nº of Curves to test</mat-label>
+                            <input matInput formControlName="attackNumCurves" type="number" min="1" required>
+                            <mat-error *ngIf="attackForm.controls['attackNumCurves'].hasError('required')">
+                                This field is required
+                            </mat-error>
+                            <mat-error *ngIf="attackForm.controls['attackNumCurves'].hasError('min')">
+                                The value must be greater than 0
+                            </mat-error>
+                        </mat-form-field>
+                        <mat-form-field>
+                            <mat-label>Nº of tests</mat-label>
+                            <input matInput formControlName="attackNumTests" type="number" min="1" required>
+                            <mat-error *ngIf="attackForm.controls['attackNumTests'].hasError('required')">
+                                This field is required
+                            </mat-error>
+                            <mat-error *ngIf="attackForm.controls['attackNumTests'].hasError('min')">
+                                The value must be greater than 0
+                            </mat-error>
+                        </mat-form-field>
+                        <div formArrayName="attackParams" *ngIf="attackForm.get('attackNumCurves')?.value">
+                            <ng-container *ngFor="let attackParamGroup of attackParams.controls; let i = index"
+                                [formGroupName]="i">
+                                <label>Curve {{i + 1}}</label>
+                                <div class="curve">
+                                    <mat-form-field *ngFor="let paramKey of getFormKeys(attackParamGroup)">
+                                        <mat-label>{{paramKey}}</mat-label>
+                                        <input matInput type="text" [formControlName]="paramKey">
+                                        <mat-error *ngIf="attackParamGroup.get(paramKey)?.hasError('required')">
+                                            This field is required
+                                        </mat-error>
+                                        <mat-error *ngIf="attackParamGroup.get(paramKey)?.hasError('min')">
+                                            The value must be greater than 0
+                                        </mat-error>
+                                    </mat-form-field>
+                                </div>
+                            </ng-container>
+                        </div>
+                        <mat-card-actions
+                            *ngIf="attackForm.controls['attackNumCurves'].valid && attackForm.controls['attackNumTests'].valid && attackForm.controls['attackParams'].valid">
+                            <button mat-flat-button color="primary" (click)="runAttackBenchmark()">Run
+                                Benchmark</button>
+                        </mat-card-actions>
+                    </form>
+                </mat-card-content>
+            </mat-card>
+        </div>
+        <div>
+            <mat-card id="results">
+                <mat-card-header>
+                    <mat-card-title>
+                        <h2>Results<mat-progress-spinner *ngIf="loadingBenchmark" mode="indeterminate" [diameter]="30"></mat-progress-spinner></h2>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <mat-error *ngIf="errorBenchmark">{{errorBenchmark}}</mat-error>
+                    <div *ngIf="attackResults.data.length > 0">
+                        <table mat-table [dataSource]="attackResults">
+                            <ng-container matColumnDef="curve">
+                                <th mat-header-cell *matHeaderCellDef> Curve </th>
+                                <td mat-cell *matCellDef="let element"> {{element.curve}} </td>
+                            </ng-container>
+                            <ng-container matColumnDef="a">
+                                <th mat-header-cell *matHeaderCellDef> a </th>
+                                <td mat-cell *matCellDef="let element"> {{element.a}} </td>
+                            </ng-container>
+                            <ng-container matColumnDef="b">
+                                <th mat-header-cell *matHeaderCellDef> b </th>
+                                <td mat-cell *matCellDef="let element"> {{element.b}} </td>
+                            </ng-container>
+                            <ng-container matColumnDef="field">
+                                <th mat-header-cell *matHeaderCellDef> Field </th>
+                                <td mat-cell *matCellDef="let element"> {{element.field}} </td>
+                            </ng-container>
+                            <ng-container matColumnDef="successes">
+                                <th mat-header-cell *matHeaderCellDef> Successes </th>
+                                <td mat-cell *matCellDef="let element"> {{element.successes}} </td>
+                            </ng-container>
+                            <ng-container matColumnDef="failures">
+                                <th mat-header-cell *matHeaderCellDef> Failures </th>
+                                <td mat-cell *matCellDef="let element"> {{element.failures}} </td>
+                            </ng-container>
+                            <ng-container matColumnDef="rate">
+                                <th mat-header-cell *matHeaderCellDef> Rate (%) </th>
+                                <td mat-cell *matCellDef="let element"> {{element.rate}} </td>
+                            </ng-container>
+                            <ng-container matColumnDef="time">
+                                <th mat-header-cell *matHeaderCellDef> Time (ms) </th>
+                                <td mat-cell *matCellDef="let element"> {{element.time}} </td>
+                            </ng-container>
+                            <tr mat-header-row *matHeaderRowDef="['curve', 'a', 'b', 'field', 'successes', 'failures', 'rate', 'time']">
+                            </tr>
+                            <tr mat-row
+                                *matRowDef="let row; columns: ['curve', 'a', 'b', 'field', 'successes', 'failures', 'rate', 'time']">
+                        </table>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </mat-card-content>
+</mat-card>

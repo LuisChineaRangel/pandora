@@ -2,6 +2,10 @@ mat-card>mat-card-content mat-card {
     margin: 2rem;
 }
 
+mat-form-field {
+    margin-right: 1rem;
+}
+
 #properties,
 #secrets,
 #alphabet-container,
@@ -52,17 +56,22 @@ mat-card>mat-card-content mat-card {
 
 .canvas {
     position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
     height: 100%;
 }
 
-#alphabet-textarea, #decrypted-message {
+#alphabet-textarea,
+#decrypted-message {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-#alphabet-textarea>*>*, #decrypted-message>*>* {
+#alphabet-textarea>*>*,
+#decrypted-message>*>* {
     width: 100%;
 }
 
@@ -73,12 +82,18 @@ mat-card>mat-card-content mat-card {
     margin: 1rem 0;
 }
 
-.party {
+.party,
+.party-keys {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    flex-wrap: wrap;
+    justify-content: flex-start;
     align-items: center;
     margin: 1rem 0;
+}
+
+.party span {
+    margin-right: 1rem;
 }
 
 .party-title {
@@ -100,16 +115,19 @@ mat-card>mat-card-content mat-card {
     flex-direction: column;
 }
 
-#send-form mat-card-content, #receive-form mat-card-content {
+#send-form mat-card-content,
+#receive-form mat-card-content {
     display: flex;
     flex-direction: column;
 }
 
-#send-form mat-card-content, #receive-form mat-card-content {
+#send-form mat-card-content,
+#receive-form mat-card-content {
     flex-grow: 1;
 }
 
-#send-form mat-card-content>*>*, #receive-form mat-card-content>*>* {
+#send-form mat-card-content>*>*,
+#receive-form mat-card-content>*>* {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -128,4 +146,47 @@ table {
 #decryption_keys {
     margin-top: 2rem;
     padding: 0 25%;
+}
+
+@media screen and (max-width: 1000px) {
+
+    #properties,
+    #secrets,
+    #alphabet-container,
+    #send-form,
+    #receive-form {
+        flex-direction: column;
+    }
+
+    #properties>*,
+    #secrets>*,
+    #alphabet-container>*,
+    #send-form>*,
+    #receive-form>* {
+        flex: 1 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    #predefined-curves {
+        margin: 2rem 0;
+    }
+
+    .charts-container,
+    #alphabet-textarea,
+    #encrypted-message,
+    #decryption-form {
+        justify-content: space-between;
+    }
+
+}
+
+@media screen and (max-width: 1300px) {
+    #alphabet-container {
+        flex-direction: column;
+    }
+
+    #alphabet-container>* {
+        flex: 1 0 100% !important;
+        max-width: 100% !important;
+    }
 }

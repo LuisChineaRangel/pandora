@@ -10,7 +10,7 @@ import { CurveService } from '@services/curve.service';
 import { chartOptions, calculateConfig, displayCurve, dsConfig } from '@app/core/utils/chart';
 import { primeValidator } from '@app/core/utils/validators';
 import { languages, options, string_format, special, Alphabet, NumericSystem } from '@app/core/utils/alphabet';
-import { findIndex, firstValueFrom, share } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 
 export interface EncryptionTable {
@@ -55,8 +55,8 @@ export class SimulationComponent implements OnInit {
 
     curves_data: { [key: string]: { a: number, b: number, field?: number } } = {
         'SECP256k1': { a: 0, b: 7 },
-        'Curve448': { a: 1, b: 2 },
-        'Curve25519': { a: 5, b: 7 },
+        'Curve448': { a: 156326, b: 1 },
+        'Curve25519': { a: 486662, b: 1 },
     };
 
     encryptionResults = new MatTableDataSource<any>();
@@ -111,6 +111,7 @@ export class SimulationComponent implements OnInit {
             this.onSubmitBase();
         });
         this.secretsForm.get('num_parties')?.valueChanges.subscribe(async (numParties: number) => {
+            if (numParties < 2 || numParties > 4) return;
             await this.updatePartyDetails(numParties);
             if (this.p_chart) {
                 this.p_chart.data.datasets = this.p_chart.data.datasets.filter((dataset: any) => dataset.label === "ECC Points" || dataset.label === "Base Point");

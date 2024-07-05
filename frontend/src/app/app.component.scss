@@ -2,13 +2,19 @@
     --white: rgba(255, 255, 255, 1);
     --black: rgba(0, 0, 0, 1);
     --error: rgba(244, 67, 54, 1);
+    --color-1: rgba(87, 6, 140, 1);
+    --color-2: rgba(225, 180, 255, 0.3);
 }
 
 mat-toolbar {
     position: fixed;
     height: 10vh;
     z-index: 999999;
-    border-bottom: 0.2rem solid var(--black);
+    background-color: var(--color-1);
+}
+
+mat-toolbar *{
+    color: var(--white) !important;
 }
 
 mat-sidenav-container {
@@ -20,9 +26,9 @@ mat-sidenav-container mat-sidenav {
     width: 20%;
     position: fixed;
     top: 10vh;
+    background-color: var(--color-2);
     box-sizing: content-box;
     border-radius: 0;
-    border-right: 0.2rem solid var(--black) !important;
     overflow: visible;
 }
 

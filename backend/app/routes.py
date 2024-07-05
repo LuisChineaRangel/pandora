@@ -7,6 +7,9 @@ from flask import request, jsonify, redirect
 from app import app
 from app.services.point_service import Point
 from app.services.curve_service import Curve
+from app.services.setup_service import Setup
+from app.services.pollig_hellman import PolligHellman
+from app.services.baby_step_giant_step import BabyStepGiantStep
 
 ecc = {}
 
@@ -241,5 +244,67 @@ def decrypt():
 
         response = {"message": "Message decrypted", "decrypted": decrypted}
         return jsonify(response), 200
+    except Exception as e:
+        return jsonify(str(e)), 400
+
+@app.route("/api/benchmark", methods=["POST"])
+def benchmark():
+    try:
+        data = request.get_json()
+
+        if "attackType" not in data:
+            return jsonify("Missing key: attackType"), 400
+
+        numCurves = data["numCurves"]
+        numTests = data["numTests"]
+
+        curves = []
+        algorithm = data["attackType"]
+        for i in range(numCurves):
+            params = data["params"][i]
+            curve = Curve(int(params["a"]), int(params["b"]), int(params["field"]))
+            base = json.loads(params["base"])
+            curve.base = Point(curve, int(base["x"]), int(base["y"]))
+            curve.n = int(params["n"])
+            if algorithm == "Pollig-Hellman":
+                point_a = json.loads(params["point_a"])
+                point_a = Point(curve, int(point_a["x"]), int(point_a["y"]))
+                curves.append((curve, point_a))
+            elif  algorithm == "Baby-Step Giant-Step":
+                point_a = json.loads(params["point_a"])
+                point_a = Point(curve, int(point_a["x"]), int(point_a["y"]))
+                m = int(params["m"])
+                curves.append((curve, point_a, m))
+            else:
+                curves.append(curve)
+
+        results = []
+        if algorithm == "Setup":
+            benchmark = Setup.benchmark(curves, numTests)
+        elif algorithm == "Pollig-Hellman":
+            benchmark = PolligHellman.benchmark(curves, numTests)
+        elif algorithm == "Baby-Step Giant-Step":
+            benchmark = BabyStepGiantStep.benchmark(curves, numTests)
+        else:
+            return jsonify("Invalid algorithm"), 400
+        for i, _ in enumerate(curves):
+            if algorithm == "Pollig-Hellman" or algorithm == "Baby-Step Giant-Step":
+                curve = curves[i][0]
+            else:
+                curve = curves[i]
+            success_count = benchmark[i][0]
+            rate = benchmark[i][1]
+            elapsed_time = benchmark[i][2]
+            results.append({
+                "curve": str(i + 1),
+                "a" : curve.a,
+                "b" : curve.b,
+                "field" : curve.field,
+                "successes": success_count,
+                "failures": numTests - success_count,
+                "rate": rate,
+                "time": elapsed_time,
+            })
+        return jsonify({"message": "Benchmark completed", "results": results}), 200
     except Exception as e:
         return jsonify(str(e)), 400

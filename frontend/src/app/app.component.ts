@@ -18,7 +18,7 @@ export class AppComponent implements OnInit {
     sidebarLinks: { label: string, route: string, icon?: string }[] = [
         { label: 'ECC Simulation', route: '/simulation', icon: 'line_axis' },
         { label: 'Attacks', route: '/attacks', icon: 'security' },
-        { label: 'Documentation', route: '/docs', icon: 'library_books' },
+        // { label: 'Documentation', route: '/docs', icon: 'library_books' },
     ];
 
     constructor(private router: Router, private uidService: UidService) { }

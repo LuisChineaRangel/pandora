@@ -1,8 +1,7 @@
 import re
 import json
 import uuid
-from sympy import isprime
-from flask import request, jsonify, redirect
+from flask import request, jsonify
 
 from app import app
 from app.services.point_service import Point

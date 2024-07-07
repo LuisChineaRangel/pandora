@@ -1,5 +1,4 @@
 import json
-import math
 from typing import Any
 from app.utils import simplify_fraction, euclid_extended
 

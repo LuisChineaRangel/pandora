@@ -2,8 +2,7 @@ import time
 from app.services.point_service import Point
 from app.services.curve_service import Curve
 
-DELIMITER = "--------------------------------------------------------------------------------------------"
-
+DELIMITER = "------------------------------------------------------------------"
 
 class BabyStepGiantStep:
     def __init__(self, ec: "Curve", m: int, G: "Point", A: "Point"):
@@ -14,7 +13,7 @@ class BabyStepGiantStep:
 
     def __baby_step(self) -> list:
         baby_steps = [None] * self.m
-        for i in range(self.m):
+        for i in range(1, self.m + 1):
             result = self.G * i
             if result.at_infinity():
                 result = Point(self.ec, 0, 0)
@@ -23,7 +22,7 @@ class BabyStepGiantStep:
 
     def __giant_step(self) -> list:
         giant_steps = [None] * self.m
-        for i in range(self.m):
+        for i in range(1, self.m + 1):
             result = self.G * (self.m * i)
             if result.at_infinity():
                 result = Point(self.ec, 0, 0)
@@ -66,7 +65,7 @@ class BabyStepGiantStep:
             start = time.time()
             for _ in range(num_tries):
                 alpha = attacker.attack()
-                if alpha is not None:
+                if alpha is not None and ec.base * alpha == A:
                     success_count += 1
             end = time.time()
             elapsed_time = end - start

@@ -17,7 +17,7 @@ import { AttacksService } from '@app/services/attacks.service';
 
 export class AttacksComponent implements OnInit {
     attackForm: FormGroup;
-    attackTypes: string[] = ['Setup', 'Pohlig-Hellman', 'Baby-Step Giant-Step'];
+    attackTypes: string[] = ['SETUP', 'Pohlig-Hellman', 'Baby-Step Giant-Step'];
     attackResults: MatTableDataSource<any> = new MatTableDataSource<any>();
 
     selectedAttack: string = String();
@@ -32,7 +32,7 @@ export class AttacksComponent implements OnInit {
         'SECP256k1': {
             a: 0,
             b: 7,
-            field: 7919n,
+            field: 115792089237316195423570985008687907853269984665640564039457584007908834671663n,
             n: 7917n,
             m: 89,
             base: {
@@ -47,24 +47,24 @@ export class AttacksComponent implements OnInit {
         "Curve448": {
             a: 156326,
             b: 1,
-            field: 8191n,
+            field: 726838724295606890549323807888004534353641360687318060281490199180612328166730772686396383698676545930088884461843637361053498018365439n,
             n: 7873n,
             m: 127,
             base: {
-                x: 26n,
-                y: 4549n
+                x: 8126n,
+                y: 2849n
             },
             point_a: {
-                x: 5480n,
-                y: 3060n
+                x: 1421n,
+                y: 6356n
             }
         },
         "Curve25519": {
             a: 486662,
             b: 1,
-            field: 2n ** 255n - 19n,
-            n: 2n ** 252n + 27742317777372353535851937790883648493n,
-            m: 8,
+            field: 5419n,
+            n: 5407n,
+            m: 323,
             base: {
                 x: 9n,
                 y: 14781619447589544791020593568409986887264606134616475288964881837755586237401n,

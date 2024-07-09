@@ -93,7 +93,7 @@ class Curve:
             raise ValueError("Alphabet not set!")
         if self.field <= (self.m(alph) * 2):
             raise ValueError(
-                f"Invalid prime number! {self.field} must be greater than 2 * M (M = {self.m(alph)})."
+                "Field too small! Must be greater than 2 * size of the alphabet"
             )
         encoded = []
         h = self.field // self.m(alph)

@@ -6,6 +6,15 @@ mat-form-field {
     margin-right: 1rem;
 }
 
+.charts-container mat-card-header mat-card-title h3 {
+    display: flex;
+    align-items: center;
+}
+
+.charts-container mat-card-header mat-card-title h3 mat-progress-spinner {
+    margin-left: 1rem;
+}
+
 #properties,
 #secrets,
 #alphabet-container,

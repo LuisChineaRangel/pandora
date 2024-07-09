@@ -15,7 +15,7 @@ export class CurveService {
     }
 
     getPoints(uid: string): Observable<HttpResponse<any>> {
-        return this.http.get<any>(`${this.curveURL}/api/curve/points`, { params: { uid } });
+        return this.http.get<any>(`${this.curveURL}/api/curve/points`, { params: { uid }, observe: 'response' });
     }
 
     setBase(uid: string, base: Point): Observable<HttpResponse<any>> {

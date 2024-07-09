@@ -6,7 +6,7 @@ from flask import request, jsonify
 from app import app
 from app.services.point_service import Point
 from app.services.curve_service import Curve
-from app.services.setup_service import Setup
+from app.services.setup import Setup
 from app.services.pohlig_hellman import PohligHellman
 from app.services.baby_step_giant_step import BabyStepGiantStep
 
@@ -279,7 +279,7 @@ def benchmark():
                 curves.append(curve)
 
         results = []
-        if algorithm == "Setup":
+        if algorithm == "SETUP":
             benchmark = Setup.benchmark(curves, numTests)
         elif algorithm == "Pohlig-Hellman":
             benchmark = PohligHellman.benchmark(curves, numTests)

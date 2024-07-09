@@ -40,7 +40,7 @@
                         <div class="mat-form-field-container">
                             <label for="field">Prime Field</label>
                             <mat-form-field>
-                                <input matInput type="number" formControlName="field" id="field"
+                                <input matInput type="text" formControlName="field" id="field"
                                     [placeholder]="'2, 3, 4, 7...'">
                                 <mat-error *ngIf="curveForm.get('field')?.hasError('primeError')">
                                     The field value must be a prime number.
@@ -63,8 +63,7 @@
             <mat-card class="charts-container">
                 <mat-card-header>
                     <mat-card-title>
-                        <h3>ECC Simulation</h3>
-                        <mat-progress-spinner *ngIf="loading_curve" mode="indeterminate"></mat-progress-spinner>
+                        <h3>ECC Simulation<mat-progress-spinner *ngIf="loading_curve" mode="indeterminate" [diameter]="30"></mat-progress-spinner></h3>
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
@@ -119,8 +118,7 @@
             <mat-card class="charts-container">
                 <mat-card-header>
                     <mat-card-title>
-                        <h3>Points on Curve</h3>
-                        <mat-progress-spinner *ngIf="loading_points" mode="indeterminate"></mat-progress-spinner>
+                        <h3>Points on Curve<mat-progress-spinner *ngIf="loading_points" mode="indeterminate" [diameter]="30"></mat-progress-spinner></h3>
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
@@ -230,7 +228,7 @@
                         </mat-form-field>
                     </div>
                     <div>
-                        <label>Remember to setup alphabet first!</label>
+                        <label>Remember to set-up alphabet first!</label>
                         <mat-form-field appearance="outline">
                             <mat-label>Introduce message</mat-label>
                             <textarea formControlName="message" matInput rows="8"></textarea>

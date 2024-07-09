@@ -150,17 +150,31 @@ export class SimulationComponent implements OnInit {
     async onSubmitCurve() {
         if (this.curveForm.valid) {
             const formValue = this.curveForm.value;
-            await this.curveService.makeCurve(this.uid, formValue.a, formValue.b, formValue.field).subscribe(async (res: HttpResponse<string>) => {
-                console.log(res.body);
-                this.drawCChart();
-                await this.curveService.getPoints(this.uid).subscribe(async (res: any) => {
-                    this.points = res.points.map((data: string) => {
-                        const point = JSON.parse(data);
-                        return new Point(point.x, point.y);
-                    });
-                    this.drawPChart();
-                });
-            });
+            this.loading_curve = true;
+            try {
+                const curve_res : HttpResponse<any> = await firstValueFrom(this.curveService.makeCurve(this.uid, formValue.a, formValue.b, formValue.field));
+                if (curve_res.status === 200) {
+                    console.log(curve_res.body);
+                    this.drawCChart();
+                    this.loading_points = true;
+                    const points_res : HttpResponse<any> = await firstValueFrom(this.curveService.getPoints(this.uid));
+                    if (points_res.status === 200) {
+                        this.points = points_res.body.points.map((data: string) => {
+                            const point = JSON.parse(data);
+                            return new Point(point.x, point.y);
+                        });
+                        this.drawPChart();
+                    }
+                }
+            }
+            catch (error: any) {
+                if (error.status === 400 || error.status === 404) {
+                    const errorMessage = error.error || 'An error occurred';
+                    console.log(errorMessage);
+                }
+            }
+            this.loading_curve = false;
+            this.loading_points = false;
             this.baseForm.reset();
             this.baseForm.enable();
         }
@@ -178,7 +192,6 @@ export class SimulationComponent implements OnInit {
     }
 
     drawCChart() {
-        this.loading_curve = true;
         const config = calculateConfig(this.curveForm.value.a, this.curveForm.value.b);
         const [f_half, s_half] = displayCurve(this.curveForm.value.a, this.curveForm.value.b, config);
         const ctx = this.curveChartRef.nativeElement.getContext('2d');
@@ -197,11 +210,9 @@ export class SimulationComponent implements OnInit {
                 }),
             });
         }
-        this.loading_curve = false;
     }
 
     drawPChart() {
-        this.loading_points = true;
         const x_max = Math.max(...this.points.map(({ x }) => x)) + 1;
         const y_max = Math.max(...this.points.map(({ y }) => y)) + 1;
         const ctx = this.pointsChartRef.nativeElement.getContext('2d');
@@ -222,7 +233,6 @@ export class SimulationComponent implements OnInit {
                 options: chartOptions(-1, x_max, -1, y_max, {}, true),
             });
         }
-        this.loading_points = false;
         this.baseForm.enable();
     }
 

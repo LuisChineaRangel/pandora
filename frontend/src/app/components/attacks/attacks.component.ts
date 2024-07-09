@@ -17,7 +17,7 @@ import { AttacksService } from '@app/services/attacks.service';
 
 export class AttacksComponent implements OnInit {
     attackForm: FormGroup;
-    attackTypes: string[] = ['Setup', 'Pollig-Hellman', 'Baby-Step Giant-Step'];
+    attackTypes: string[] = ['Setup', 'Pohlig-Hellman', 'Baby-Step Giant-Step'];
     attackResults: MatTableDataSource<any> = new MatTableDataSource<any>();
 
     selectedAttack: string = String();
@@ -28,35 +28,35 @@ export class AttacksComponent implements OnInit {
 
     errorBenchmark: string = String();
 
-    curves_data: { [key: string]: { a: number, b: number, field: bigint, n: bigint, m: bigint, base: { x: bigint, y: bigint }, point_a: { x: bigint, y: bigint } } } = {
+    curves_data: { [key: string]: { a: number, b: number, field: bigint, n: bigint, m: number, base: { x: bigint, y: bigint }, point_a: { x: bigint, y: bigint } } } = {
         'SECP256k1': {
             a: 0,
             b: 7,
-            field: 115792089237316195423570985008687907853269984665640564039457584007908834671663n,
-            n: 115792089237316195423570985008687907852837564279074904382605163141518161494337n,
-            m: 5n,
+            field: 7919n,
+            n: 7917n,
+            m: 89,
             base: {
-                x: 79086247176140945631788741473243917373392091539978947803256065440939503345144n,
-                y: 46592427867154248619823560021064937204868064911504510519907326227152259586360n
+                x: 121n,
+                y: 3020n
             },
             point_a: {
-                x: 55066263022277343669578718895168534326250603453777594175500187360389116729240n,
-                y: 32670510020758816978083085130507043184471273380659243275938904335757337482424n
+                x: 1514n,
+                y: 2234n
             }
         },
         "Curve448": {
             a: 156326,
             b: 1,
-            field: 2n ** 448n - 2n ** 224n - 1n,
-            n: 2n ** 446n - 13818066809895115352007386748515426880336692474882178609894547503885n,
-            m: 4n,
+            field: 8191n,
+            n: 7873n,
+            m: 127,
             base: {
-                x: 5n,
-                y: 355293926785568175264127502063783334808976399387714271831880898435169088786967410002932673765864550910142774147268105838985595290606362n,
+                x: 26n,
+                y: 4549n
             },
             point_a: {
-                x: 156326n,
-                y: 1n
+                x: 5480n,
+                y: 3060n
             }
         },
         "Curve25519": {
@@ -64,7 +64,7 @@ export class AttacksComponent implements OnInit {
             b: 1,
             field: 2n ** 255n - 19n,
             n: 2n ** 252n + 27742317777372353535851937790883648493n,
-            m: 8n,
+            m: 8,
             base: {
                 x: 9n,
                 y: 14781619447589544791020593568409986887264606134616475288964881837755586237401n,
@@ -93,13 +93,18 @@ export class AttacksComponent implements OnInit {
             if (!this.loadingData) {
                 this.attackParams.clear();
                 for (let i = 0; i < value; i++) {
-                    this.attackParams.push(this.fb.group({
+                    let params = {
                         a: ['', [Validators.required]],
                         b: ['', [Validators.required]],
                         field: ['', [Validators.required, Validators.min(2)]],
                         n: ['', [Validators.required, Validators.min(1)]],
                         base: ['', [Validators.required]],
-                    }));
+                    }
+                    if (this.selectedAttack === 'Pohlig-Hellman' || this.selectedAttack === 'Baby-Step Giant-Step')
+                        Object.assign(params, { point_a: ['', [Validators.required]] });
+                    if (this.selectedAttack === 'Baby-Step Giant-Step')
+                        Object.assign(params, { m: ['', [Validators.required]] });
+                    this.attackParams.push(this.fb.group(params));
                 }
             }
             else {
@@ -115,7 +120,7 @@ export class AttacksComponent implements OnInit {
                         n: [curveData.n.toString(), [Validators.required, Validators.min(1)]],
                         base: [`(${curveData.base.x.toString()},${curveData.base.y.toString()})`, [Validators.required]],
                     }
-                    if (this.selectedAttack === 'Pollig-Hellman' || this.selectedAttack === 'Baby-Step Giant-Step')
+                    if (this.selectedAttack === 'Pohlig-Hellman' || this.selectedAttack === 'Baby-Step Giant-Step')
                         Object.assign(data, { point_a: [`(${curveData.point_a.x.toString()},${curveData.point_a.y.toString()})`, [Validators.required]] });
                     if (this.selectedAttack === 'Baby-Step Giant-Step')
                         Object.assign(data, { m: [curveData.m, [Validators.required]] });
@@ -165,10 +170,11 @@ export class AttacksComponent implements OnInit {
             const b = curve.get('b')?.value;
             const field = curve.get('field')?.value;
             const n = curve.get('n')?.value;
+            const m = curve.get('m')?.value;
             const base = Point.fromString(curve.get('base')?.value);
-            if (this.selectedAttack === 'Pollig-Hellman' || this.selectedAttack === 'Baby-Step Giant-Step') {
+            if (this.selectedAttack === 'Pohlig-Hellman' || this.selectedAttack === 'Baby-Step Giant-Step') {
                 const point_a = Point.fromString(curve.get('point_a')?.value);
-                curves.push({ a, b, field, n, base, point_a });
+                curves.push({ a, b, field, n, m, base, point_a });
             }
             else {
                 curves.push({ a, b, field, n, base });

@@ -7,7 +7,7 @@ from app import app
 from app.services.point_service import Point
 from app.services.curve_service import Curve
 from app.services.setup_service import Setup
-from app.services.pollig_hellman import PolligHellman
+from app.services.pohlig_hellman import PohligHellman
 from app.services.baby_step_giant_step import BabyStepGiantStep
 
 ecc = {}
@@ -266,7 +266,7 @@ def benchmark():
             base = json.loads(params["base"])
             curve.base = Point(curve, int(base["x"]), int(base["y"]))
             curve.n = int(params["n"])
-            if algorithm == "Pollig-Hellman":
+            if algorithm == "Pohlig-Hellman":
                 point_a = json.loads(params["point_a"])
                 point_a = Point(curve, int(point_a["x"]), int(point_a["y"]))
                 curves.append((curve, point_a))
@@ -281,14 +281,14 @@ def benchmark():
         results = []
         if algorithm == "Setup":
             benchmark = Setup.benchmark(curves, numTests)
-        elif algorithm == "Pollig-Hellman":
-            benchmark = PolligHellman.benchmark(curves, numTests)
+        elif algorithm == "Pohlig-Hellman":
+            benchmark = PohligHellman.benchmark(curves, numTests)
         elif algorithm == "Baby-Step Giant-Step":
             benchmark = BabyStepGiantStep.benchmark(curves, numTests)
         else:
             return jsonify("Invalid algorithm"), 400
         for i, _ in enumerate(curves):
-            if algorithm == "Pollig-Hellman" or algorithm == "Baby-Step Giant-Step":
+            if algorithm == "Pohlig-Hellman" or algorithm == "Baby-Step Giant-Step":
                 curve = curves[i][0]
             else:
                 curve = curves[i]

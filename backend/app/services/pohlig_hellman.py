@@ -22,7 +22,7 @@ def prime_factors(n):
 
     return factors
 
-class PolligHellman:
+class PohligHellman:
     def __init__(self, ec: "Curve", G: "Point", A: "Point"):
         self.ec = ec
         self.field = ec.field
@@ -72,7 +72,7 @@ class PolligHellman:
             ec = Curve(int(curve.a), int(curve.b), int(curve.field))
             ec.base = Point(ec, int(curve.base.x), int(curve.base.y))
             A = Point(ec, int(data[1].x), int(data[1].y))
-            attacker = PolligHellman(ec, ec.base, A)
+            attacker = PohligHellman(ec, ec.base, A)
             success_count = 0
             start = time.time()
             for _ in range(num_tries):
@@ -85,7 +85,7 @@ class PolligHellman:
         return results
 
 
-def test_pollig_hellman():
+def test_pohlig_hellman():
     ec = Curve(0, 7)
     ec.field = 89
     ec.base = Point(
@@ -96,7 +96,7 @@ def test_pollig_hellman():
     )
 
     A = Point(ec.a, ec.field, 4, 58)
-    attacker = PolligHellman(ec, ec.base, A)
+    attacker = PohligHellman(ec, ec.base, A)
     alpha = attacker.attack()
     print(f"Private key: {alpha}")
 

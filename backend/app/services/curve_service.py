@@ -70,7 +70,6 @@ class Curve:
 
     def calculate_points(self) -> None:
         self.points = []
-        print(self.a, self.b, self.field)
         if self.a is None or self.b is None or self.field is None:
             raise ValueError(
                 f"Parameters not set! a: {self.a}, b: {self.b}, field: {self.field}"

@@ -12,7 +12,7 @@ You can access the application at the following [link](https://pandora-ecc.netli
 - Customizable elliptic curve configuration and visualization.
 - Generation of public and private keys.
 - Encryption and decryption of messages.
-- Elliptic curve attack using SETUP, Pollig-Hellman, and Baby-Step Giant-Step algorithms.
+- Elliptic curve attack using SETUP, Pohlig-Hellman, and Baby-Step Giant-Step algorithms.
 
 ## Installation Requirements
 

@@ -17,7 +17,7 @@ class BabyStepGiantStep:
         for i in range(self.m):
             result = self.G * i
             if result.at_infinity():
-                result = Point(self.ec.a, self.ec.field, 0, 0)
+                result = Point(self.ec, 0, 0)
             baby_steps[i] = result
         return baby_steps
 
@@ -26,7 +26,7 @@ class BabyStepGiantStep:
         for i in range(self.m):
             result = self.G * (self.m * i)
             if result.at_infinity():
-                result = Point(self.ec.a, self.ec.field, 0, 0)
+                result = Point(self.ec, 0, 0)
             giant_steps[i] = self.A - result
         return giant_steps
 

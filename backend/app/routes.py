@@ -15,7 +15,6 @@ ecc = {}
 CURVE_NOT_FOUND = "Curve not found"
 BASE_NOT_SET = "Base point not set"
 
-
 @app.route("/api/uid", methods=["GET"])
 def generate_uid():
     try:

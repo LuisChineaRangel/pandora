@@ -13,7 +13,7 @@ class BabyStepGiantStep:
 
     def __baby_step(self) -> list:
         baby_steps = [None] * self.m
-        for i in range(1, self.m + 1):
+        for i in range(self.m):
             result = self.G * i
             if result.at_infinity():
                 result = Point(self.ec, 0, 0)
@@ -22,7 +22,7 @@ class BabyStepGiantStep:
 
     def __giant_step(self) -> list:
         giant_steps = [None] * self.m
-        for i in range(1, self.m + 1):
+        for i in range(self.m):
             result = self.G * (self.m * i)
             if result.at_infinity():
                 result = Point(self.ec, 0, 0)

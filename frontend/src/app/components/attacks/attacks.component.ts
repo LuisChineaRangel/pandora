@@ -26,52 +26,54 @@ export class AttacksComponent implements OnInit {
     loadingData: boolean = false;
     loadingBenchmark: boolean = false;
 
+    timeCounter: number = 0;
+
     errorBenchmark: string = String();
 
-    curves_data: { [key: string]: { a: number, b: number, field: bigint, n: bigint, m: number, base: { x: bigint, y: bigint }, point_a: { x: bigint, y: bigint } } } = {
+    curves_data: { [key: string]: { a: number, b: number, field: bigint, n: bigint, m: bigint, base: { x: bigint, y: bigint }, point_a: { x: bigint, y: bigint } } } = {
         'SECP256k1': {
             a: 0,
             b: 7,
             field: 115792089237316195423570985008687907853269984665640564039457584007908834671663n,
-            n: 7917n,
-            m: 89,
+            n: 115792089237316195423570985008687907852837564279074904382605163141518161494337n,
+            m: 340282366920938463463374607431768211455n,
             base: {
-                x: 121n,
-                y: 3020n
+                x: 55066263022277343669578718895168534326250603453777594175500187360389116729240n,
+                y: 32670510020758816978083085130507043184471273380659243275938904335757337482424n
             },
             point_a: {
-                x: 1514n,
-                y: 2234n
+                x: 21505829891763648114329055987619236494102133314575206970830385799158076338148n,
+                y: 98003708678762621233683240503080860129026887322874138805529884920309963580118n
             }
         },
         "Curve448": {
             a: 156326,
             b: 1,
             field: 726838724295606890549323807888004534353641360687318060281490199180612328166730772686396383698676545930088884461843637361053498018365439n,
-            n: 7873n,
-            m: 127,
+            n: 181709681073901722637330951972001133588410340171829515070372549795146003961539585716195755291692375963310293709091662304773755859649779n,
+            m: 13479973333575319897333507543509815336818572211270286240551805124607n,
             base: {
-                x: 8126n,
-                y: 2849n
+                x: 5n,
+                y: 35529392678556817526412750235081380130778569647988843218951531421051415125751n
             },
             point_a: {
-                x: 1421n,
-                y: 6356n
+                x: 673936523416081290120999371900466516106892990230349438597177751580130783170072725784790104836128219552803615584400462895047441936417157n,
+                y: 191099231317703370060376051215513305468496789003104951808806869610090342268001519132838072492690955095788869794160354756677723211506674n,
             }
         },
         "Curve25519": {
             a: 486662,
             b: 1,
-            field: 5419n,
-            n: 5407n,
-            m: 323,
+            field: 57896044618658097711785492504343953926634992332820282019728792003956564819949n,
+            n: 7237005577332262213973186563042994240857116359379907606001950938285454250989n,
+            m: 85070591730234615865843651857942052864n,
             base: {
                 x: 9n,
-                y: 14781619447589544791020593568409986887264606134616475288964881837755586237401n,
+                y: 28948022309329048855892746252171976963363056481941560715954676764349967630337n
             },
             point_a: {
-                x: 9n,
-                y: 1n
+                x: 11230807594379268910086358485694694951419473881869873502205616924862643004978n,
+                y: 37007179164428750567294559964401039446177820452377850298166352325267280363192n
             }
         },
     };
@@ -123,7 +125,7 @@ export class AttacksComponent implements OnInit {
                     if (this.selectedAttack === 'Pohlig-Hellman' || this.selectedAttack === 'Baby-Step Giant-Step')
                         Object.assign(data, { point_a: [`(${curveData.point_a.x.toString()},${curveData.point_a.y.toString()})`, [Validators.required]] });
                     if (this.selectedAttack === 'Baby-Step Giant-Step')
-                        Object.assign(data, { m: [curveData.m, [Validators.required]] });
+                        Object.assign(data, { m: [curveData.m.toString(), [Validators.required]] });
                     this.attackParams.push(this.fb.group(data));
                 }
             }
@@ -155,6 +157,7 @@ export class AttacksComponent implements OnInit {
     }
 
     async runAttackBenchmark(): Promise<void> {
+        this.timeCounter = 0;
         if (this.attackForm.invalid) return;
         this.errorBenchmark = String();
         this.loadingBenchmark = true;
@@ -182,6 +185,9 @@ export class AttacksComponent implements OnInit {
         }
 
         let data = [];
+        let intervalId = setInterval(() => {
+            this.timeCounter++;
+        }, 1000);
         try {
             const res: HttpResponse<any> = await firstValueFrom(this.attackService.runAttackBenchmark(attackType, attackNumTests, attackNumCurves, curves));
 
@@ -210,6 +216,8 @@ export class AttacksComponent implements OnInit {
             console.error(error);
             this.errorBenchmark = `Attack Benchmark Failed!`
         }
+        if (intervalId)
+            clearInterval(intervalId);
         this.attackResults.data = data;
         this.loadingBenchmark = false;
     }

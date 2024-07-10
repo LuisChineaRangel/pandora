@@ -21,13 +21,28 @@ mat-form-field {
     flex-wrap: wrap;
 }
 
+#results mat-card-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+#results mat-card-header span {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+}
+
+#results mat-card-header span strong {
+    margin-right: 0.5rem;
+}
+
 #results mat-card-header mat-card-title h2 {
     display: flex;
     align-items: center;
 }
 
 #results mat-card-header mat-card-title h2 mat-progress-spinner {
-    margin-left: 1rem;
+    margin: 0 1rem;
 }
 
 #warning {

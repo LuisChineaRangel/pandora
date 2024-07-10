@@ -19,12 +19,14 @@
                             {{attack}}
                         </mat-button-toggle>
                     </mat-button-toggle-group>
-                    <div id="warning" *ngIf="selectedAttack === 'Pohlig-Hellman' || selectedAttack === 'Baby-Step Giant-Step'">
-                            <mat-icon>warning</mat-icon>
-                            <span>
-                                Warning: This attack is very slow and may take a long time to finish. It is
-                                recommended to use a small number for the finite field size and the number of curves to test.
-                            </span>
+                    <div id="warning"
+                        *ngIf="selectedAttack === 'Pohlig-Hellman' || selectedAttack === 'Baby-Step Giant-Step'">
+                        <mat-icon>warning</mat-icon>
+                        <span>
+                            Warning: This attack is very slow and may take a long time to finish. It is
+                            recommended to use a small number for the finite field size and the number of curves to
+                            test.
+                        </span>
                     </div>
                 </mat-card-content>
             </mat-card>
@@ -98,8 +100,12 @@
             <mat-card id="results">
                 <mat-card-header>
                     <mat-card-title>
-                        <h2>Results<mat-progress-spinner *ngIf="loadingBenchmark" mode="indeterminate" [diameter]="30"></mat-progress-spinner></h2>
+                        <h2>Results
+                            <mat-progress-spinner *ngIf="loadingBenchmark" mode="indeterminate"
+                                [diameter]="30"></mat-progress-spinner>
+                        </h2>
                     </mat-card-title>
+                    <span *ngIf="loadingBenchmark"><strong>Time elapsed:</strong> {{timeCounter}} s.</span>
                 </mat-card-header>
                 <mat-card-content>
                     <mat-error *ngIf="errorBenchmark">{{errorBenchmark}}</mat-error>
@@ -137,7 +143,8 @@
                                 <th mat-header-cell *matHeaderCellDef> Time (ms) </th>
                                 <td mat-cell *matCellDef="let element"> {{element.time}} </td>
                             </ng-container>
-                            <tr mat-header-row *matHeaderRowDef="['curve', 'a', 'b', 'field', 'successes', 'failures', 'rate', 'time']">
+                            <tr mat-header-row
+                                *matHeaderRowDef="['curve', 'a', 'b', 'field', 'successes', 'failures', 'rate', 'time']">
                             </tr>
                             <tr mat-row
                                 *matRowDef="let row; columns: ['curve', 'a', 'b', 'field', 'successes', 'failures', 'rate', 'time']">

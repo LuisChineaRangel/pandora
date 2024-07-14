@@ -26,6 +26,10 @@ mat-form-field {
     min-height: 40rem;
 }
 
+.charts-container {
+    min-height: 20rem;
+}
+
 #alphabet-container {
     min-height: 30rem;
 }
@@ -155,6 +159,20 @@ table {
 #decryption_keys {
     margin-top: 2rem;
     padding: 0 25%;
+}
+
+@media screen and (max-width: 640px) {
+    mat-card-title h1 {
+        font-size: 2.5rem;
+    }
+
+    mat-card-title h2 {
+        font-size: 1.8rem;
+    }
+
+    mat-card-title h3 {
+        font-size: 1.5rem;
+    }
 }
 
 @media screen and (max-width: 1000px) {

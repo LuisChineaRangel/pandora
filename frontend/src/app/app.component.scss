@@ -50,3 +50,17 @@ mat-sidenav-container mat-sidenav-content {
     padding: 2.5% 5%;
     min-height: 100vh;
 }
+
+
+@media screen and (max-width: 900px) {
+    mat-sidenav-container mat-sidenav {
+        width: 35% !important;
+    }
+
+}
+
+@media screen and (max-width: 600px) {
+    mat-sidenav-container mat-sidenav {
+        width: 100% !important;
+    }
+}

@@ -9,6 +9,14 @@ export function primeValidator(): ValidatorFn {
     };
 }
 
+function getRandomBigInt(n: bigint): bigint {
+    const max = Number(n) - 3;
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    const randomInt = array[0] % max;
+    return BigInt(randomInt) + 2n;
+}
+
 function isPrime(num: number): boolean {
     if (num <= 1) return false;
     if (num <= 3) return true;
@@ -36,7 +44,7 @@ function lehmanPeraltaTest(numStr: string, k: number = 10): boolean {
     if (n <= 3n) return true;
     if (n % 2n === 0n) return false;
     for (let i = 0; i < k; i++) {
-        let a = BigInt(Math.floor(Math.random() * (Number(n) - 3))) + 2n;
+        let a = getRandomBigInt(n);
         let x = modPow(a, (n - 1n) / 2n, n);
         if (x === 0n || x === n - 1n)
             continue;

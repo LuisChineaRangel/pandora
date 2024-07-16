@@ -49,6 +49,7 @@ export function chartOptions(x_min: number, x_max: number, y_min: number, y_max:
             x: axisConfig("linear", "bottom", x_min, x_max),
             y: axisConfig("linear", "left", y_min, y_max),
         },
+        maintainAspectRatio: false,
         elements: elements
     } as ChartOptions;
 }

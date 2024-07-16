@@ -157,10 +157,10 @@
                             </mat-select>
                         </mat-form-field>
                     </div>
-                    <div *ngIf="selectedCategoryControl.value === 'alphabet'">
+                    <div *ngIf="selectedCategoryControl.value === 'alphabet'" id="options">
                         <mat-label>Options</mat-label>
                         <div>
-                            <mat-button-toggle-group aria-label="Options" [hideSingleSelectionIndicator]="true">
+                            <mat-button-toggle-group aria-label="Options" [hideSingleSelectionIndicator]="true" [vertical]="isVertical">
                                 <mat-button-toggle *ngFor="let option of options | keyvalue" value="{{option.key}}"
                                     (click)="setOption(option.key)" (keypress)="setOption(option.key)">
                                     {{option.key.replace('_', ' ')}}

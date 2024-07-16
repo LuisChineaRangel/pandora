@@ -63,4 +63,8 @@ mat-sidenav-container mat-sidenav-content {
     mat-sidenav-container mat-sidenav {
         width: 100% !important;
     }
+
+    mat-sidenav-container mat-sidenav-content {
+        padding: 2.5% 2.5%;
+    }
 }

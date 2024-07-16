@@ -70,6 +70,7 @@ mat-form-field {
 .canvas {
     position: relative;
     display: flex;
+    flex-grow: 1;
     justify-content: center;
     align-items: center;
     width: 100%;
@@ -172,6 +173,22 @@ table {
 
     mat-card-title h3 {
         font-size: 1.5rem;
+    }
+
+    mat-card {
+        margin: 0.75rem 0.5rem !important;
+    }
+
+    mat-card mat-card-content {
+        padding: 0.5rem !important;
+    }
+
+    .charts-container {
+        height: 25rem;
+    }
+
+    #options mat-button-toggle-group {
+        border-radius: 0.5rem;
     }
 }
 

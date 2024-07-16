@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CoreModule } from '@app/core/core.module';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 import { UidService } from '@services/uid.service';
 
@@ -24,10 +25,25 @@ export class AppComponent implements OnInit {
     constructor(private router: Router, private uidService: UidService) { }
 
     async ngOnInit(): Promise<void> {
+        this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
+            this.checkViewPortAndToggleSidebar();
+        });
         await this.uidService.getUid().subscribe((uid: string) => {
             this.uidService.saveUid(uid);
         });
         this.opened = localStorage.getItem('opened') === 'true';
+    }
+
+    @HostListener('window:resize')
+    onResize(): void {
+        this.checkViewPortAndToggleSidebar();
+    }
+
+    checkViewPortAndToggleSidebar(): void {
+        const vpWidth = window.innerWidth;
+        if (vpWidth <= 600) {
+            this.opened = false;
+        }
     }
 
     toggleSidebar(): void {

@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '
 import { HttpResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
+import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 
 import { AttacksService } from '@app/services/attacks.service';
 
@@ -78,7 +79,9 @@ export class AttacksComponent implements OnInit {
         },
     };
 
-    constructor(private fb: FormBuilder, private attackService: AttacksService) {
+    isVertical: boolean = false;
+
+    constructor(private fb: FormBuilder, private attackService: AttacksService, private breakpointObserver: BreakpointObserver) {
         this.attackForm = this.fb.group({
             attackType: ['', [Validators.required]],
             attackNumTests: ['', [Validators.required, Validators.min(1)]],
@@ -88,7 +91,11 @@ export class AttacksComponent implements OnInit {
         this.attackForm.disable();
     }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+        this.breakpointObserver.observe(['(max-width: 600px)']).subscribe((state: BreakpointState) => {
+            this.isVertical = state.matches;
+        });
+    }
 
     ngAfterViewInit(): void {
         this.attackForm.get('attackNumCurves')?.valueChanges.subscribe(async (value) => {

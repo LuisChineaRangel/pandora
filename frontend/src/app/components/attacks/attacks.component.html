@@ -13,7 +13,7 @@
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                    <mat-button-toggle-group aria-label="Attacks">
+                    <mat-button-toggle-group aria-label="Attacks" [vertical]="isVertical">
                         <mat-button-toggle *ngFor="let attack of attackTypes" [value]="attack"
                             (click)="selectAttack(attack)" (keypress)="selectAttack(attack)">
                             {{attack}}

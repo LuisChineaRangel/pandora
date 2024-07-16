@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CoreModule, Point } from '@app/core/core.module';
-import { FormBuilder, FormControl, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormArray, Validators } from '@angular/forms';
+import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { HttpResponse } from '@angular/common/http';
 import Chart, { ChartConfiguration } from 'chart.js/auto';
 import { MatTableDataSource } from '@angular/material/table';
@@ -62,7 +63,9 @@ export class SimulationComponent implements OnInit {
     encryptionResults = new MatTableDataSource<any>();
     decryption_keys: { key: Point, party: number }[] = [];
 
-    constructor(private fb: FormBuilder, private uidService: UidService, private curveService: CurveService) {
+    isVertical: boolean = false;
+
+    constructor(private fb: FormBuilder, private uidService: UidService, private curveService: CurveService, private breakpointObserver: BreakpointObserver) {
         this.curveForm = this.fb.group({
             a: ['', [Validators.required]],
             b: ['', [Validators.required]],
@@ -101,6 +104,9 @@ export class SimulationComponent implements OnInit {
         });
         this.c_chart = new Chart(this.curveChartRef.nativeElement.getContext('2d'), {} as ChartConfiguration);
         this.p_chart = new Chart(this.pointsChartRef.nativeElement.getContext('2d'), {} as ChartConfiguration);
+        this.breakpointObserver.observe(['(max-width: 600px)']).subscribe((state: BreakpointState) => {
+            this.isVertical = state.matches;
+        });
     }
 
     ngAfterViewInit() {
@@ -152,12 +158,12 @@ export class SimulationComponent implements OnInit {
             const formValue = this.curveForm.value;
             this.loading_curve = true;
             try {
-                const curve_res : HttpResponse<any> = await firstValueFrom(this.curveService.makeCurve(this.uid, formValue.a, formValue.b, formValue.field));
+                const curve_res: HttpResponse<any> = await firstValueFrom(this.curveService.makeCurve(this.uid, formValue.a, formValue.b, formValue.field));
                 if (curve_res.status === 200) {
                     console.log(curve_res.body);
                     this.drawCChart();
                     this.loading_points = true;
-                    const points_res : HttpResponse<any> = await firstValueFrom(this.curveService.getPoints(this.uid));
+                    const points_res: HttpResponse<any> = await firstValueFrom(this.curveService.getPoints(this.uid));
                     if (points_res.status === 200) {
                         this.points = points_res.body.points.map((data: string) => {
                             const point = JSON.parse(data);

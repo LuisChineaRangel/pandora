@@ -63,7 +63,8 @@
             <mat-card class="charts-container">
                 <mat-card-header>
                     <mat-card-title>
-                        <h3>ECC Simulation<mat-progress-spinner *ngIf="loading_curve" mode="indeterminate" [diameter]="30"></mat-progress-spinner></h3>
+                        <h3>ECC Simulation<mat-progress-spinner *ngIf="loading_curve" mode="indeterminate"
+                                [diameter]="30"></mat-progress-spinner></h3>
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
@@ -118,7 +119,8 @@
             <mat-card class="charts-container">
                 <mat-card-header>
                     <mat-card-title>
-                        <h3>Points on Curve<mat-progress-spinner *ngIf="loading_points" mode="indeterminate" [diameter]="30"></mat-progress-spinner></h3>
+                        <h3>Points on Curve<mat-progress-spinner *ngIf="loading_points" mode="indeterminate"
+                                [diameter]="30"></mat-progress-spinner></h3>
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
@@ -160,7 +162,8 @@
                     <div *ngIf="selectedCategoryControl.value === 'alphabet'" id="options">
                         <mat-label>Options</mat-label>
                         <div>
-                            <mat-button-toggle-group aria-label="Options" [hideSingleSelectionIndicator]="true" [vertical]="isVertical">
+                            <mat-button-toggle-group aria-label="Options" [hideSingleSelectionIndicator]="true"
+                                [vertical]="isVertical">
                                 <mat-button-toggle *ngFor="let option of options | keyvalue" value="{{option.key}}"
                                     (click)="setOption(option.key)" (keypress)="setOption(option.key)">
                                     {{option.key.replace('_', ' ')}}
@@ -252,11 +255,13 @@
                             <td mat-cell *matCellDef="let element"> {{ element.character }} </td>
                         </ng-container>
                         <ng-container matColumnDef="encoded">
-                            <th mat-header-cell *matHeaderCellDef> Encoded </th>
+                            <th mat-header-cell *matHeaderCellDef> Encoded <button
+                                    (click)="copyValues('encoded')"><mat-icon>content_copy</mat-icon></button></th>
                             <td mat-cell *matCellDef="let element"> {{ element.encoded }} </td>
                         </ng-container>
                         <ng-container matColumnDef="encrypted">
-                            <th mat-header-cell *matHeaderCellDef> Encrypted </th>
+                            <th mat-header-cell *matHeaderCellDef> Encrypted <button
+                                    (click)="copyValues('encrypted')"><mat-icon>content_copy</mat-icon></button></th>
                             <td mat-cell *matCellDef="let element"> {{ element.encrypted }} </td>
                         </ng-container>
                         <tr mat-header-row *matHeaderRowDef="['character', 'encoded', 'encrypted'];"></tr>

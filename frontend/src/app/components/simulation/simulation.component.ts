@@ -5,6 +5,7 @@ import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { HttpResponse } from '@angular/common/http';
 import Chart, { ChartConfiguration } from 'chart.js/auto';
 import { MatTableDataSource } from '@angular/material/table';
+import { Clipboard } from '@angular/cdk/clipboard';
 
 import { UidService } from '@services/uid.service';
 import { CurveService } from '@services/curve.service';
@@ -65,7 +66,7 @@ export class SimulationComponent implements OnInit {
 
     isVertical: boolean = false;
 
-    constructor(private fb: FormBuilder, private uidService: UidService, private curveService: CurveService, private breakpointObserver: BreakpointObserver) {
+    constructor(private fb: FormBuilder, private uidService: UidService, private curveService: CurveService, private breakpointObserver: BreakpointObserver, private clipboard: Clipboard) {
         this.curveForm = this.fb.group({
             a: ['', [Validators.required]],
             b: ['', [Validators.required]],
@@ -151,6 +152,10 @@ export class SimulationComponent implements OnInit {
     loadCurveData(curve: string) {
         this.curveForm.patchValue(this.curves_data[curve]);
         this.onSubmitCurve();
+    }
+
+    copyValues(type: string) {
+        this.clipboard.copy(this.encryptionResults.data.map((data: EncryptionTable) => data[type as keyof EncryptionTable]).join(''));
     }
 
     async onSubmitCurve() {

@@ -151,6 +151,22 @@ table {
     width: 100%;
 }
 
+table th  mat-icon {
+    transform: scale(0.75);
+}
+
+table th button{
+    border: 0;
+    border-radius: 50%;
+    padding: 0.5rem;
+    background-color: transparent;
+}
+
+table th button:hover {
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.08);
+}
+
 .mat-mdc-header-cell,
 .mat-mdc-cell {
     justify-content: center !important;

@@ -77,6 +77,36 @@ export class AttacksComponent implements OnInit {
                 y: 37007179164428750567294559964401039446177820452377850298166352325267280363192n
             }
         },
+        "Baby-Step Giant-Step Test": {
+            a: 2,
+            b: 2,
+            field: 17n,
+            n: 19n,
+            m: 5n,
+            base: {
+                x: 5n,
+                y: 1n
+            },
+            point_a: {
+                x: 10n,
+                y: 6n
+            }
+        },
+        "Pohlig-Hellman Test": {
+            a: 0,
+            b: 7,
+            field: 89n,
+            n: 89n,
+            m: 5n,
+            base: {
+                x: 1n,
+                y: 39n
+            },
+            point_a: {
+                x: 4n,
+                y: 58n
+            }
+        }
     };
 
     isVertical: boolean = false;
